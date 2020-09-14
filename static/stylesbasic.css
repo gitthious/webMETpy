@@ -1,0 +1,192 @@
+header, section, article, footer { border: 3px solid black; }
+
+html, body {
+  height: 100vh;
+}
+
+main {
+	display: grid;
+	grid-template-columns: 1% 40% 57% 2%;
+	grid-template-rows: 40% 40% 10% 10%;
+	grid-template-areas: 
+		". ligne ligne ."
+		". agents chrono ."
+		". help help ."
+		". cmd cmd .";
+	grid-column-gap: 10px;
+	grid-row-gap: 10px;
+	place-items: stretch;
+	place-content: stretch;
+}
+
+header {
+	grid-area: ligne;
+}
+
+footer {
+  grid-area: cmd;
+  display: flex;
+}
+
+section#chrono {
+	grid-area: chrono;
+}
+
+section#agents {
+  grid-area: agents;
+}
+
+section#agents > ul {
+	list-style-type: none; 
+	display: grid;
+	grid-template-columns: auto auto auto auto;
+	grid-template-rows: auto auto;
+}
+
+section#help {
+  grid-area: help;
+  display: flex;
+}
+
+input, select {
+	margin-top: 0.5em;
+	margin-bottom: 1em;
+}
+
+.temps_courant {
+	fill: none;
+ 	stroke: red;
+	stroke-width: 0.75;
+	clip-path: url(#clip);
+}
+
+.zoom {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+
+
+.evt { 
+	fill: white;
+	opacity: 1;
+	stroke: black;
+}
+
+.evt text { 
+	fill: black;
+	opacity: 1;
+	stroke: none;
+	font-size: 10px;
+}
+
+.voie_N_S, .voie_S_N {
+   stroke: black;
+   fill:   black;
+   stroke-width: 1px;
+}
+
+/*
+.Station {
+   stroke: black;
+   fill:   white;
+}
+*/
+
+text.Station  {
+	fill: black;
+	stroke: none;
+}
+
+.quai_central {
+   stroke: black;
+   fill:   white;
+}
+
+.quai_nord {
+   stroke: black;
+   fill:   white;
+}
+
+.quai_sud {
+   stroke: black;
+   fill:   white;
+}
+
+
+.quai_sud.correspondances, .quai_nord.correspondances, .quai_central.correspondances {
+	fill:   lightgray;
+}
+
+.Navette {
+   stroke: green;
+   fill:   white;
+}
+
+.Navette.est_a_quai {
+   fill:   lightgreen;
+}
+
+
+.Navette text{
+   stroke: green;
+   fill:   none;
+}
+
+.GroupeVoyageurs {
+   stroke: blue;
+   fill:   blue;
+   stroke-width: 4px;
+}
+
+/*
+.agent_RATP {
+   stroke: gray;
+   fill:   gray;
+   stroke-width: 4px;
+}
+*/
+
+.AgentRATPVivier .AgentRATP {
+   stroke: gray;
+   fill:   gray;
+   stroke-width: 4px;
+   color: gray;
+}
+
+.mousein {
+	stroke: red;
+	color: red;
+}
+
+.chronosimple ul {
+	/*list-style-type: none;*/
+	padding: 0;
+	border: 1px solid #ddd;
+	height:350px;
+	overflow-y:scroll;
+}
+
+.chronosimple .evtsimple {
+  padding: 8px 16px;
+  border-bottom: 1px solid #ddd;
+}
+
+.chronosimple .evtsimple:last-child {
+  border-bottom: none
+}
+
+/*
+nav ul{height:200px; width:18%;}
+nav ul{overflow:hidden; overflow-y:scroll;}
+*/	
+
+.menu {
+  display: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.show-menu {
+	display: block;
+}
