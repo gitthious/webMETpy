@@ -1,0 +1,85 @@
+/*@import url("./normalize.css")*/
+
+header, section, article, footer { 
+	border: 3px solid black; 
+}
+
+html, body {
+  height: 100vh;
+}
+
+input, select {
+	margin-top: 0.5em;
+	margin-bottom: 1em;
+}
+
+.temps_courant {
+	fill: none;
+ 	stroke: red;
+	stroke-width: 0.75;
+	clip-path: url(#clip);
+}
+
+.zoom {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+
+
+.evt { 
+	fill: white;
+	opacity: 1;
+	stroke: black;
+}
+
+.evt text { 
+	fill: black;
+	opacity: 1;
+	stroke: none;
+	font-size: 10px;
+}
+
+
+.mousein {
+	stroke: red;
+	color: red;
+}
+
+.chronosimple ul {
+	list-style-type: none;
+	padding: 0;
+	height:350px;
+	overflow-y:scroll;
+}
+
+.chronosimple .evtsimple {
+  border: 1px solid #ddd;
+  background-color: lightgray;
+}
+
+.chronosimple .evtblancd {
+  border: 0px solid white;
+  background-color: transparent;
+}
+
+/*
+.chronosimple .evtsimple:last-child {
+  border-bottom: none
+}
+*/
+
+/*
+nav ul{height:200px; width:18%;}
+nav ul{overflow:hidden; overflow-y:scroll;}
+*/	
+
+.menu {
+  display: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.show-menu {
+	display: block;
+}
