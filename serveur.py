@@ -38,6 +38,7 @@ class ServiceSim(flask_socketio.Namespace):
 
     def on_play_pause(self):
         if not self.thread_sim or not self.thread_sim.is_alive():
+            self.env = sim.Env(strict=False, dispatcher=self.socketio, init=self.data_init)
             self.thread_sim = self.socketio.start_background_task(self.run, self.env)
             print("sim running", self.thread_sim, self.thread_sim.is_alive())
             self.socketio.emit("sim.started")
@@ -58,9 +59,9 @@ class ServiceSim(flask_socketio.Namespace):
             self.env.stop()
             self.thread_sim =  None
             self.data_init.reinit()
-            self.env = sim.Env(strict=False, dispatcher=self.socketio, init=self.data_init)
+            self.env = None
             self.socketio.emit("sim.stoped")
-            self.socketio.emit('init_data', self.env.init.init_data())
+            self.socketio.emit('init_data', self.data_init.init_data())
 
     def on_step(self):
         print("step")
@@ -84,6 +85,7 @@ class ServiceSim(flask_socketio.Namespace):
     def on_geninit(self):
         print("geninit")
         if self.thread_sim: return
+        
         self.env.init.gen()
         self.socketio.emit('init_data', self.env.init.init_data())
         # howto force rendering template

@@ -23,7 +23,7 @@ var Selecteur = function(){
 	};
 	
 	this.action_select = function(obj){
-		console.log("selecteur.action_select", obj)
+		//console.log("selecteur.action_select", obj)
 		if(!obj){
 			waction.html("");
 			waction.select("button")
@@ -64,7 +64,7 @@ var Selecteur = function(){
 			}
 		}
 		yield [a_selectionner, null];
-		sujet = selection.id
+		sujet = selection.clef
 		selecteur.action_select();
 		selecteur.action_select(sujet);
 
@@ -100,8 +100,8 @@ var Selecteur = function(){
 			a_selectionner.push(comportement.params[p]);
 			yield [a_selectionner, null];
 			
-			selecteur.action_select(selection.id);
-			parametres.push(selection.id)
+			selecteur.action_select(selection.clef);
+			parametres.push(selection.clef)
 		}
 		
 		yield [[], selecteur.afficher_bouton_go]
@@ -125,7 +125,7 @@ var Selecteur = function(){
 	this.action = function (event, objet_selectionne){
 		selection = objet_selectionne
 		var r = sequence_actions.next();
-		console.log("Selecteur.action", selection, r.value);
+		//console.log("Selecteur.action", selection, r.value);
 		[types_selectionnables, action, params] = r.value;
 		this.info_select(types_selectionnables);
 		if(action){
@@ -141,7 +141,7 @@ var Selecteur = function(){
 	}
 
 	this.go = function(event){
-		console.log("go", mission, sujet, parametres);
+		//console.log("go", mission, sujet, parametres);
 		socket.emit(mission, sujet, ...parametres);
 	}
 

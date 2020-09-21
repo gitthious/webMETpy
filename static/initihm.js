@@ -130,7 +130,7 @@ function setup() {
 		//console.log('update', msg);
 		if( msg.type == "agents_RATP") {
 			for (let i = 0; i < data.agents_RATP.length; i++) {
-				if(data.agents_RATP[i].nom == msg.obj){
+				if(data.agents_RATP[i].clef == msg.obj){
 					data.agents_RATP[i].localisation = msg.localisation;
 					break;
 				}
@@ -138,11 +138,16 @@ function setup() {
 		} else if( msg.type == "GroupeVoyageurs") {
 			//console.log(msg);
 			// spécifique à cause des perf. => moche
-			data.groupes_voyageurs[msg.id] = msg.obj
+			for (let i = 0; i < data.groupes_voyageurs.length; i++) {
+				if(data.groupes_voyageurs[i].clef == msg.clef){
+					data.groupes_voyageurs[i].localisation = msg.obj.localisation;
+					break;
+				}
+			}
 
 		} else if( msg.type == "Navette") {
 			for (let i = 0; i < data.navettes.length; i++) {
-				if(data.navettes[i].nom == msg.obj){
+				if(data.navettes[i].clef == msg.obj){
 					data.navettes[i].nombre_de_voyageurs = msg.nombre_de_voyageurs;
 					break;
 				}

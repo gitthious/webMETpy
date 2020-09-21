@@ -160,21 +160,27 @@ text.Station  {
 }
 
 .chronosimple ul {
-	/*list-style-type: none;*/
+	list-style-type: none;
 	padding: 0;
-	border: 1px solid #ddd;
 	height:350px;
 	overflow-y:scroll;
 }
 
 .chronosimple .evtsimple {
-  padding: 8px 16px;
-  border-bottom: 1px solid #ddd;
+  border: 1px solid #ddd;
+  background-color: lightgray;
 }
 
+.chronosimple .evtblancd {
+  border: 0px solid white;
+  background-color: transparent;
+}
+
+/*
 .chronosimple .evtsimple:last-child {
   border-bottom: none
 }
+*/
 
 /*
 nav ul{height:200px; width:18%;}
