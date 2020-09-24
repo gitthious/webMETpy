@@ -148,7 +148,14 @@ function setup() {
 		} else if( msg.type == "Navette") {
 			for (let i = 0; i < data.navettes.length; i++) {
 				if(data.navettes[i].clef == msg.obj){
-					data.navettes[i].nombre_de_voyageurs = msg.nombre_de_voyageurs;
+					//console.log("update Navette msg", msg);
+					if(msg.nombre_de_voyageurs){
+						data.navettes[i].nombre_de_voyageurs = msg.nombre_de_voyageurs;
+					}
+					if(msg.etat){
+						data.navettes[i].etat = msg.etat;
+					}
+					//console.log("update Navette obj", data.navettes[i]);
 					break;
 				}
 			}
@@ -186,9 +193,10 @@ function setup() {
 		
 		ligne = new VisuLigne(data);
 		chrono = new VisuChronoSimple(data.dateheure_debut, data.duree);
-		chrono.update(data.events);
-		
 		agents = new VisuAgent();
+
+		ligne.update();
+		chrono.update(data.events);	
 		agents.update(data.agents_RATP, data.agents_vivier);
 		
 		selecteur =  new Selecteur();
