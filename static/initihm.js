@@ -72,13 +72,14 @@ function setup() {
 		wdateheure_debut.html(dh ? dh.toLocaleString() : '?');
 	});
 	
-	socket.on('CR', (contenu) => {
-		evt = {dt: tick_vers_dateheure(contenu.tick), nom: contenu.msg}
-		//console.log('onCR', evt, contenu);
+	socket.on('CR', (msg) => {
+		let dh = moment(msg.dt.__datetime__);
+		evt = {dt: dh.toDate(), nom: msg.nom};
+		//console.log('onCR', 'evt', evt, 'msg', msg);
 		data.events.push(evt);
 		chrono.update(data.events);
 	});
-	
+		
 	socket.on('connected', () => {
 		wtick.html("connecté");
 			
@@ -128,10 +129,10 @@ function setup() {
 
 	socket.on('update', (msg) => {
 		//console.log('update', msg);
-		if( msg.type == "agents_RATP") {
-			for (let i = 0; i < data.agents_RATP.length; i++) {
-				if(data.agents_RATP[i].clef == msg.obj){
-					data.agents_RATP[i].localisation = msg.localisation;
+		if( msg.type == "AgentExploitation") {
+			for (let i = 0; i < data.agents_exploitation.length; i++) {
+				if(data.agents_exploitation[i].clef == msg.obj){
+					data.agents_exploitation[i].localisation = msg.localisation;
 					break;
 				}
 			}
@@ -172,6 +173,7 @@ function setup() {
 
 		// converti les string en date javascript
 		if(data.events) {
+			//console.log('nb events', data.events);
 			for(e of data.events) {
 				e.dt = moment(e.dt['__datetime__']).toDate();
 			}
@@ -197,7 +199,7 @@ function setup() {
 
 		ligne.update();
 		chrono.update(data.events);	
-		agents.update(data.agents_RATP, data.agents_vivier);
+		agents.update(data.agents_exploitation, data.agents_vivier);
 		
 		selecteur =  new Selecteur();
 

@@ -26,11 +26,10 @@ var Selecteur = function(){
 		//console.log("selecteur.action_select", obj)
 		if(!obj){
 			waction.html("");
-			waction.select("button")
-				.remove();
+			waction.select("button").remove();
 			return;
 		}
-		var txt = obj; //JSON.stringify(obj);
+		var txt = obj; 
 		waction.html(waction.html()+txt+' ');
 	};
 	

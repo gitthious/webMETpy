@@ -6,7 +6,6 @@ from simMETpy import sim
 import threading
 from pathlib import Path
 
-
 import flask_socketio
 
 class ServiceSim(flask_socketio.Namespace):
