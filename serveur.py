@@ -89,28 +89,3 @@ class ServiceSim(flask_socketio.Namespace):
         self.socketio.emit('init_data', self.env.init.init_data())
         # howto force rendering template
 
-def set_app_static_path(app, *others):
-    # Remove the old rule from Map._rules.
-    for rule in app.url_map.iter_rules('static'):
-        app.url_map._rules.remove(rule)  # There is probably only one.
-
-    # Remove the old rule from Map._rules_by_endpoint. In this case we can just 
-    # start fresh.
-    app.url_map._rules_by_endpoint['static'] = []  
-
-    # Ajoute webMETpy path
-    new_path = Path(__file__).parent
-    print(new_path)
-    app.add_url_rule(f'{new_path}/<path:filename>',
-                     endpoint='static',
-                     view_func=app.send_static_file)
-
-    # Ajoute les autres éventuellement
-    for new_path in others:
-        print(new_path)
-        app.add_url_rule(f'{new_path}/<path:filename>',
-                         endpoint='static',
-                         view_func=app.send_static_file)
-
-    
-

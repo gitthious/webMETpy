@@ -6,10 +6,20 @@ encoding utf-8
 var socket; // the websocket
 var wtick, button_play, button_stop, button_step, wdateheure_debut, wfacteur_temps;
 var data = null;
-var chrono, ligne, agents, menu;
+var chrono,  menu; 
+var vues = [];
 var where_drop;
 var button_savesim, button_loadsim, button_geninit;
 var selecteur;
+
+/*
+	Doit être définie par le produit. Elle doit être de la forme:
+new Map([	
+	['type (nom de classe)', 'nom attr dans data'],
+])
+*/
+var update_map;
+
 
 function tick_vers_dateheure(tick){
 	//console.log("tick_vers_dateheure", tick, data)
@@ -127,43 +137,36 @@ function setup() {
 		wtick.html("connecté");
 	})
 
+	if(update_map === undefined) {
+		window.alert("Pas d'update_map!");
+	}
+	
 	socket.on('update', (msg) => {
-		//console.log('update', msg);
-		if( msg.type == "AgentExploitation") {
-			for (let i = 0; i < data.agents_exploitation.length; i++) {
-				if(data.agents_exploitation[i].clef == msg.obj){
-					data.agents_exploitation[i].localisation = msg.localisation;
-					break;
-				}
-			}
-		} else if( msg.type == "GroupeVoyageurs") {
-			//console.log(msg);
-			// spécifique à cause des perf. => moche
-			for (let i = 0; i < data.groupes_voyageurs.length; i++) {
-				if(data.groupes_voyageurs[i].clef == msg.clef){
-					data.groupes_voyageurs[i].localisation = msg.obj.localisation;
-					break;
-				}
-			}
-
-		} else if( msg.type == "Navette") {
-			for (let i = 0; i < data.navettes.length; i++) {
-				if(data.navettes[i].clef == msg.obj){
-					//console.log("update Navette msg", msg);
-					if(msg.nombre_de_voyageurs){
-						data.navettes[i].nombre_de_voyageurs = msg.nombre_de_voyageurs;
-					}
-					if(msg.etat){
-						data.navettes[i].etat = msg.etat;
-					}
-					//console.log("update Navette obj", data.navettes[i]);
-					break;
-				}
-			}
-		} else {
-			console.log("update non implémenté pour " + msg.type)
+		console.log('on update', msg);
+		
+		if(update_map === undefined) {
+			window.alert("Pas d'update_map!");
+			return;
 		}
-		ligne.update();
+		
+		var nom_liste = update_map.get(msg.obj.__class__);
+		if(nom_liste === undefined){
+			console.log("update non implémenté pour " + msg.obj.__class__);
+			return;
+		}
+		
+		var liste = data[nom_liste];
+		for (let i = 0; i < liste.length; i++) {
+			if(liste[i].clef == msg.obj.clef){
+				liste[i][msg.attr] = msg.obj[msg.attr];
+				console.log('on update', i, msg.attr, msg.obj, liste[i])
+				break;
+			}
+		}
+
+		for(var v=0; v < vues.length; v++){
+			vues[v].update();
+		}
 	})
 
 	
@@ -192,19 +195,22 @@ function setup() {
 		
 		//console.log("comportements_ihm", data.comportements_ihm);
 		
+		create_vues();
 		
-		ligne = new VisuLigne(data);
 		chrono = new VisuChronoSimple(data.dateheure_debut, data.duree);
-		agents = new VisuAgent();
-
-		ligne.update();
 		chrono.update(data.events);	
-		agents.update(data.agents_exploitation, data.agents_vivier);
+
+		update_vues();
 		
 		selecteur =  new Selecteur();
 
-		//selecteur.showinfo("Cliquez sur :"+selecteur.types_a_selectionner().join());
 	})	
+}
+
+function update_vues(){
+	for(var v=0; v < vues.length; v++){
+		vues[v].update();
+	}
 }
 
 function allowDrop(ev) {
