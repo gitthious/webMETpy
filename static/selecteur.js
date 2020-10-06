@@ -62,6 +62,7 @@ var Selecteur = function(){
 				a_selectionner.push(data.comportements_ihm[i].type_agent)
 			}
 		}
+		console.log("enchainement_actions: à selectionner", a_selectionner);
 		yield [a_selectionner, null];
 		sujet = selection.clef
 		selecteur.action_select();
@@ -78,6 +79,7 @@ var Selecteur = function(){
 			break;
 		}
 		
+		console.log("enchainement_actions: à selectionner", items);
 		yield [[], menu.show, items];
 		
 		mission = selection;
@@ -94,15 +96,20 @@ var Selecteur = function(){
 				break;
 			}
 		}
+		
+		console.log("enchainement_actions: selection", comportement);
 		for(var p=0; p < comportement.params.length; p++){
 			var a_selectionner = [];
 			a_selectionner.push(comportement.params[p]);
+			console.log("enchainement_actions: à selectionner", a_selectionner);
 			yield [a_selectionner, null];
 			
 			selecteur.action_select(selection.clef);
 			parametres.push(selection.clef)
 		}
+
 		
+		console.log("enchainement_actions: à selectionner", "go/cancel");
 		yield [[], selecteur.afficher_bouton_go]
 		return [[], selecteur.go]
 	}

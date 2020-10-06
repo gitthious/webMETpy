@@ -59,6 +59,10 @@ input, select {
   background-color: lightgray;
 }
 
+.chronosimple .evtsimple:hover {
+  background-color: gray;
+}
+
 .chronosimple .evtblancd {
   border: 0px solid white;
   background-color: transparent;
@@ -86,6 +90,10 @@ nav ul{overflow:hidden; overflow-y:scroll;}
   margin: 0;
   padding-left: 5px;
   padding-right: 5px;
+}
+
+.menu li:hover {
+  background-color: gray;
 }
 
 

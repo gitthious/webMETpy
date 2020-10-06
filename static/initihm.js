@@ -142,7 +142,7 @@ function setup() {
 	}
 	
 	socket.on('update', (msg) => {
-		console.log('on update', msg);
+		//console.log('on update', msg);
 		
 		if(update_map === undefined) {
 			window.alert("Pas d'update_map!");
@@ -159,7 +159,7 @@ function setup() {
 		for (let i = 0; i < liste.length; i++) {
 			if(liste[i].clef == msg.obj.clef){
 				liste[i][msg.attr] = msg.obj[msg.attr];
-				console.log('on update', i, msg.attr, msg.obj, liste[i])
+				//console.log('on update', i, msg.attr, msg.obj, liste[i])
 				break;
 			}
 		}

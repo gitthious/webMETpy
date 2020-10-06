@@ -38,7 +38,7 @@ class ServiceSim(flask_socketio.Namespace):
     def on_play_pause(self):
         if not self.thread_sim or not self.thread_sim.is_alive():
             self.env = sim.Env(strict=False, dispatcher=self.socketio, init=self.data_init)
-            self.thread_sim = self.socketio.start_background_task(self.run, self.env)
+            self.thread_sim = self.socketio.start_background_task(self.run)
             print("sim running", self.thread_sim, self.thread_sim.is_alive())
             self.socketio.emit("sim.started")
             return
