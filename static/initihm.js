@@ -40,46 +40,61 @@ function setup() {
 	socket = io('/');
 
 	wtick = select("#tick");
+	
 	wdateheure_debut = select("#dateheure_debut")
 	wfacteur_temps = select("#wfacteur_temps")
 	
 	button_play = select("#play_pause");
-	button_play.mousePressed(() => {
-		socket.emit('play_pause');
-	});
+	if(button_play){
+		button_play.mousePressed(() => {
+			socket.emit('play_pause');
+		});
+	}
 	button_stop = select("#stop");
-	button_stop.mousePressed(() => {
-		socket.emit('stop');
-	});
+	if(button_stop){
+		button_stop.mousePressed(() => {
+			socket.emit('stop');
+		});
+	}
 	button_step = select("#step")
-	button_step.mousePressed(() => {
-		socket.emit('step');
-	});
-	
+	if(button_step){
+		button_step.mousePressed(() => {
+			socket.emit('step');
+		});
+	}
 	button_loadsim = select("#loadsim");
-	button_loadsim.mousePressed(() => {
-		socket.emit('loadsim', select("#loaded_url").value());
-	});
+	if(button_loadsim){
+		button_loadsim.mousePressed(() => {
+			socket.emit('loadsim', select("#loaded_url").value());
+		});
+	}
  
 	button_savesim = select("#savesim");
-	button_savesim.mousePressed(() => {
-		socket.emit('savesim', select("#saved_url").value());
-	});
+	if(button_savesim){
+		button_savesim.mousePressed(() => {
+			socket.emit('savesim', select("#saved_url").value());
+		});
+	}
 	button_geninit = select("#geninit");
-	button_geninit.mousePressed(() => {
-		socket.emit('geninit');
-	});
+	if(button_geninit){
+		button_geninit.mousePressed(() => {
+			socket.emit('geninit');
+		});
+	}
 
+	// Voir comment on peut tester si présent ou non
 	menu = new Menu();
 
 	
 	time_factor_ctrl = select("#time_factor");
 
 	socket.on('tick', (tick) => {
-		wtick.html(tick);
-		dh = tick_vers_dateheure(tick);
-		chrono.update_temps_courant(dh);
-		wdateheure_debut.html(dh ? dh.toLocaleString() : '?');
+		if(wtick){
+			wtick.html(tick);
+			dh = tick_vers_dateheure(tick);
+			chrono.update_temps_courant(dh);
+			wdateheure_debut.html(dh ? dh.toLocaleString() : '?');
+		}
 	});
 	
 	socket.on('CR', (msg) => {
@@ -91,50 +106,65 @@ function setup() {
 	});
 		
 	socket.on('connected', () => {
-		wtick.html("connecté");
-			
+		if(wtick){
+			wtick.html("connecté");
+		}
 	});
 
 	socket.on('connect_error', (error) => {
-		wtick.html("Non connecté: " + error);
-		button_play.attribute('disabled', true)
-		button_step.attribute('disabled', true);
-		button_stop.attribute('disabled', true);
-		button_geninit.attribute('disabled', true);
+		if(wtick){
+			wtick.html("Non connecté: " + error);
+		}
+		if(button_play){
+			button_play.attribute('disabled', true)
+			button_step.attribute('disabled', true);
+			button_stop.attribute('disabled', true);
+			button_geninit.attribute('disabled', true);
+		}
 	});
 	
 	socket.on('sim.started', () => {
-		button_play.html("Pause");
-		button_play.removeAttribute('disabled')
-		button_step.attribute('disabled', true);
-		button_stop.removeAttribute('disabled');
-		button_loadsim.attribute('disabled', true);
-		button_geninit.attribute('disabled', true);
+		if(button_play){
+			button_play.html("Pause");
+			button_play.removeAttribute('disabled')
+			button_step.attribute('disabled', true);
+			button_stop.removeAttribute('disabled');
+			button_loadsim.attribute('disabled', true);
+			button_geninit.attribute('disabled', true);
+		}
 	})
 	socket.on('sim.paused', () => {
-		button_play.html("Play");
-		button_play.removeAttribute('disabled')
-		button_step.removeAttribute('disabled');
-		button_stop.removeAttribute('disabled');
-		button_loadsim.attribute('disabled', true);
-		button_geninit.attribute('disabled', true);
+		if(button_play){
+			button_play.html("Play");
+			button_play.removeAttribute('disabled')
+			button_step.removeAttribute('disabled');
+			button_stop.removeAttribute('disabled');
+			button_loadsim.attribute('disabled', true);
+			button_geninit.attribute('disabled', true);
+		}
 	})
 	socket.on('sim.resumed', () => {
-		button_play.html("Pause");
-		button_play.removeAttribute('disabled')
-		button_step.attribute('disabled', true);
-		button_stop.removeAttribute('disabled');
-		button_loadsim.attribute('disabled', true);
-		button_geninit.attribute('disabled', true);
+		if(button_play){
+			button_play.html("Pause");
+			button_play.removeAttribute('disabled')
+			button_step.attribute('disabled', true);
+			button_stop.removeAttribute('disabled');
+			button_loadsim.attribute('disabled', true);
+			button_geninit.attribute('disabled', true);
+		}
 	})
 	socket.on('sim.stoped', () => {
-		button_play.html("Play");
-		button_play.removeAttribute('disabled')
-		button_step.attribute('disabled', true);
-		button_stop.attribute('disabled', true);
-		button_loadsim.removeAttribute('disabled');
-		button_geninit.removeAttribute('disabled');
-		wtick.html("connecté");
+		if(button_play){
+			button_play.html("Play");
+			button_play.removeAttribute('disabled')
+			button_step.attribute('disabled', true);
+			button_stop.attribute('disabled', true);
+			button_loadsim.removeAttribute('disabled');
+			button_geninit.removeAttribute('disabled');
+		}
+		if(wtick){
+			wtick.html("connecté");
+		}
 	})
 
 	if(update_map === undefined) {
@@ -185,23 +215,29 @@ function setup() {
 		if(data.dateheure_debut){
 			//console.log("dateheure_debut OK")
 			data.dateheure_debut = moment(data.dateheure_debut['__datetime__']).toDate();
-			wdateheure_debut.html(data.dateheure_debut.toLocaleString());
-			wfacteur_temps.html("x"+data.facteur_temps);
+			if(wdateheure_debut){
+				wdateheure_debut.html(data.dateheure_debut.toLocaleString());
+				wfacteur_temps.html("x"+data.facteur_temps);
+			}
 		} 
 		else {
 			//console.log("dateheure_debut KO")
-			wdateheure_debut.html("?");
+			if(wdateheure_debut){
+				wdateheure_debut.html("?");
+			}
 		}
 		
 		//console.log("comportements_ihm", data.comportements_ihm);
 		
 		create_vues();
 		
+		// Voir comment on peut tester si présent ou non
 		chrono = new VisuChronoSimple(data.dateheure_debut, data.duree);
 		chrono.update(data.events);	
 
 		update_vues();
 		
+		// Voir comment on peut tester si présent ou non
 		selecteur =  new Selecteur();
 
 	})	
