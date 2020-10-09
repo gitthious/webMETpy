@@ -25,7 +25,7 @@ function tick_vers_dateheure(tick){
 	//console.log("tick_vers_dateheure", tick, data)
 	if(data.dateheure_debut){
 		let dh = moment(data.dateheure_debut);
-		dh.add(tick/data.facteur_temps, 's');
+		dh.add(tick/*/data.facteur_temps*/, 's');
 		return dh.toDate(); 
 	} else {
 		return null;

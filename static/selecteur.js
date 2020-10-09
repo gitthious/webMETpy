@@ -18,12 +18,10 @@ var Selecteur = function(){
 	};
 	
 	this.info_select = function(obj){
-		var txt = JSON.stringify(obj);
-		winfo.html(txt);
+		winfo.html(JSON.stringify(obj));
 	};
 	
 	this.action_select = function(obj){
-		//console.log("selecteur.action_select", obj)
 		if(!obj){
 			waction.html("");
 			waction.select("button").remove();
@@ -97,19 +95,21 @@ var Selecteur = function(){
 			}
 		}
 		
-		//console.log("enchainement_actions: selection", comportement);
+		//console.log("enchainement_actions: selection", comportement, params);
 		for(var p=0; p < comportement.params.length; p++){
 			var a_selectionner = [];
 			a_selectionner.push(comportement.params[p]);
-			//console.log("enchainement_actions: à selectionner", a_selectionner);
+			console.log("enchainement_actions: à selectionner", a_selectionner);
 			yield [a_selectionner, null];
 			
-			selecteur.action_select(selection.clef);
-			parametres.push(selection.clef)
+			// pour le cas des types à saisir (à revoir)
+			val = selection.clef?selection.clef:selection
+			selecteur.action_select(val);
+			parametres.push(val)
 		}
 
 		
-		//console.log("enchainement_actions: à selectionner", "go/cancel");
+		console.log("enchainement_actions: à selectionner", comportement, parametres);
 		yield [[], selecteur.afficher_bouton_go]
 		return [[], selecteur.go]
 	}
@@ -131,11 +131,22 @@ var Selecteur = function(){
 	this.action = function (event, objet_selectionne){
 		selection = objet_selectionne
 		var r = sequence_actions.next();
-		//console.log("Selecteur.action", selection, r.value);
+		console.log("Selecteur.action", selection, r.value);
 		[types_selectionnables, action, params] = r.value;
 		this.info_select(types_selectionnables);
-		if(action){
-			action(event, params);
+		if(types_selectionnables[0] == "timedelta"){
+			waction.append('input')
+				.attr("placeholder", "durée en minute")
+				.on("change", function(d) {
+					//console.log("onchange", this)
+					d = this.value
+					d3.select(this).remove();
+					selecteur.action(event, parseInt(d));
+				});
+		} else {
+			if(action){
+				action(event, params);
+			}
 		}
 		if(r.done) {
 			selecteur.reinit();
@@ -147,7 +158,7 @@ var Selecteur = function(){
 	}
 
 	this.go = function(event){
-		//console.log("go", mission, sujet, parametres);
+		console.log("go", mission, sujet, parametres);
 		socket.emit(mission, sujet, ...parametres);
 	}
 
