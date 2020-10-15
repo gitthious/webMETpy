@@ -58,7 +58,7 @@ class ServiceSim(flask_socketio.Namespace):
             self.env.stop()
             self.thread_sim =  None
             self.data_init.reinit()
-            self.env = None
+            #self.env = None
             self.socketio.emit("sim.stoped")
             self.socketio.emit('init_data', self.data_init.init_data())
 
