@@ -10,11 +10,60 @@ import flask_socketio
 
 class ServiceSim(flask_socketio.Namespace):
     def __init__(self, namespace, socketio, data_init):
+        """
+        """
         super().__init__(namespace)
         self.socketio = socketio
         self.env = None
         self.data_init = data_init
         self.thread_sim = None
+
+    def trigger_event(self, event, *args):
+        """
+        Hérité de flask_socketio.Namespace, tente de déclencher
+        l'action de l'agent nommée par l'event. Le 1er param
+        doit être la clef de l'agent concerné.
+        Appel le trigger hérité au cas où l'agent n'existe pas.
+        """
+##        print("trigger_event", event, *args)
+        if not self.env or len( self.env.init.index_agents) == 0:
+            # déclenchement hérité
+            return super().trigger_event(event, *args)
+        # c'est le 2ème params
+        if len(args) >= 2:
+            clef_agent = args[1] 
+            agent = self.env.init.index_agents.get(clef_agent, None)
+        else:
+            agent = None
+        if not agent:
+            # déclenchement hérité
+            return super().trigger_event(event, *args)
+
+        args = args[2:]
+        return self.trigger_action_sim(agent, event, *args)
+
+    def trigger_action_sim(self, agent, nom_action_sim, *args):
+        """
+        Déclenche un événement pour signaler de déclencher
+        l'action de l'agent si la sim n'est pas en pause
+        ou arrêtée.
+        """
+        if not self.env \
+        or not self.thread_sim \
+        or not self.thread_sim.is_alive() \
+        or self.env.paused:
+            # ne fait rien si le context n'est pas approprié
+            return
+        # si un des paramètres est dans l'index, on donne l'objet correspondant
+        # si non, juste la valeur.
+        # Ce n'est pas complet mais ça doit le faire pour l'instant
+        params = [self.env.init.index.get(v,v) for v in args]
+##        print(agent, nom_action_sim, params)
+
+        # on déclenche l'événement d'arrivé d'ordre avec la valeur
+        # composée du nom de l'action et des paramètres
+        agent.arrivee_ordre.succeed((nom_action_sim, params))
+        
         
     def on_connect(self):
         self.socketio.emit("connected")
@@ -88,4 +137,8 @@ class ServiceSim(flask_socketio.Namespace):
         self.env.init.gen()
         self.socketio.emit('init_data', self.env.init.init_data())
         # howto force rendering template
+
+    def run(self):
+        self.env.run()
+        print("la simulation s'est arrêtée")
 
