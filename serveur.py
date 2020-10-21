@@ -30,19 +30,20 @@ class ServiceSim(flask_socketio.Namespace):
             # déclenchement hérité
             return super().trigger_event(event, *args)
         # c'est le 2ème params
-        if len(args) >= 2:
-            clef_agent = args[1] 
-            agent = self.env.init.index_agents.get(clef_agent, None)
-        else:
-            agent = None
+        agent = None
+        if len(args) >= 2 :
+            # si pas str alors c'est une autre commande...pas top!
+            if isinstance(args[1], str):
+                clef_agent = args[1] 
+                agent = self.env.init.index_agents.get(clef_agent, None)
         if not agent:
             # déclenchement hérité
             return super().trigger_event(event, *args)
 
         args = args[2:]
-        return self.trigger_action_sim(agent, event, *args)
+        return self.declencher_action_sim(agent, event, *args)
 
-    def trigger_action_sim(self, agent, nom_action_sim, *args):
+    def declencher_action_sim(self, agent, nom_action_sim, *args):
         """
         Déclenche un événement pour signaler de déclencher
         l'action de l'agent si la sim n'est pas en pause

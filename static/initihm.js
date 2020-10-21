@@ -226,9 +226,7 @@ function setup() {
 				wdateheure_debut.html("?");
 			}
 		}
-		
-		//console.log("comportements_ihm", data.comportements_ihm);
-		
+				
 		create_vues();
 		
 		// Voir comment on peut tester si présent ou non

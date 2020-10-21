@@ -49,15 +49,15 @@ var Selecteur = function(){
 	
 	function* enchainement_actions() {
 
-		if(!data.comportements_ihm) { return; }
+		if(!data.comportements) { return; }
 		var a_selectionner, action;		
 
 		// 1ère étape: retourne les types d'agents à sélectionner
 		a_selectionner = []
-		if(data.comportements_ihm)
+		if(data.comportements)
 		{
-			for(var i=0; i < data.comportements_ihm.length; i++){
-				a_selectionner.push(data.comportements_ihm[i].type_agent)
+			for(var i=0; i < data.comportements.length; i++){
+				a_selectionner.push(data.comportements[i].type_agent)
 			}
 		}
 		//console.log("enchainement_actions: à selectionner", a_selectionner);
@@ -68,11 +68,11 @@ var Selecteur = function(){
 
 		// 2ème étape: retourne les comportements à sélectionner dans un menu
 		items = []; var tp;
-		for(var i=0; i < data.comportements_ihm.length; i++){
-			if(data.comportements_ihm[i].type_agent != selection.__class__) continue;
-			tp = data.comportements_ihm[i]
-			for(var j=0; j <data.comportements_ihm[i].comportements.length; j++){
-				items.push(data.comportements_ihm[i].comportements[j].nom);
+		for(var i=0; i < data.comportements.length; i++){
+			if(data.comportements[i].type_agent != selection.__class__) continue;
+			tp = data.comportements[i]
+			for(var j=0; j <data.comportements[i].comportements.length; j++){
+				items.push(data.comportements[i].comportements[j].nom);
 			}
 			break;
 		}
@@ -99,7 +99,7 @@ var Selecteur = function(){
 		for(var p=0; p < comportement.params.length; p++){
 			var a_selectionner = [];
 			a_selectionner.push(comportement.params[p]);
-			console.log("enchainement_actions: à selectionner", a_selectionner);
+			//console.log("enchainement_actions: à selectionner", a_selectionner);
 			yield [a_selectionner, null];
 			
 			// pour le cas des types à saisir (à revoir)
@@ -109,7 +109,7 @@ var Selecteur = function(){
 		}
 
 		
-		console.log("enchainement_actions: à selectionner", comportement, parametres);
+		//console.log("enchainement_actions: à selectionner", comportement, parametres);
 		yield [[], selecteur.afficher_bouton_go]
 		return [[], selecteur.go]
 	}
@@ -131,7 +131,7 @@ var Selecteur = function(){
 	this.action = function (event, objet_selectionne){
 		selection = objet_selectionne
 		var r = sequence_actions.next();
-		console.log("Selecteur.action", selection, r.value);
+		//console.log("Selecteur.action", selection, r.value);
 		[types_selectionnables, action, params] = r.value;
 		this.info_select(types_selectionnables);
 		if(types_selectionnables[0] == "timedelta"){
@@ -158,7 +158,7 @@ var Selecteur = function(){
 	}
 
 	this.go = function(event){
-		console.log("go", mission, sujet, parametres);
+		//console.log("go", mission, sujet, parametres);
 		socket.emit(mission, sujet, ...parametres);
 	}
 
