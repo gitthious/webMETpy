@@ -3,6 +3,8 @@
 
 import dataclasses
 from datetime import datetime
+from simMETpy import sim
+import inspect
 
 from flask import json
 from flask.json import JSONEncoder, JSONDecoder
@@ -19,7 +21,10 @@ shape_types = (
     MultiPoint, MultiLineString, MultiPolygon
     )
 
-    
+def isattr(o):
+    return     not inspect.ismethod(o) \
+           and not inspect.isfunction(o)
+
 class Encoder(JSONEncoder):
     def default(self, o):
         if dataclasses.is_dataclass(o):
@@ -29,7 +34,30 @@ class Encoder(JSONEncoder):
                     d[a] = getattr(o,a)
             d['__class__'] = type(o).__name__
             return d
-        
+
+        if isinstance(o, sim.Init):
+            d = {}
+            for a, v in inspect.getmembers(o, isattr):
+                if a.startswith('_'): continue
+                d[a] = v
+            d['__class__'] = type(o).__name__
+            return d
+
+        if isinstance(o, type) and issubclass(o, sim.SimAgent):
+            ta = {'type_agent': o.__name__, 'comportements': []}
+            for m in sim.ordres(o) + sim.ordres_de_conduite(o):
+                sig = inspect.signature(m)
+                c = {
+                    'nom': m.__name__,
+                    'params': [
+                        p.annotation.__name__
+                        for p in sig.parameters.values()
+                        if p.annotation is not inspect.Parameter.empty
+                    ]
+                }
+                ta['comportements'].append(c)
+            return ta
+            
         if isinstance(o, datetime):
             return {'__datetime__': o.isoformat(timespec='seconds')}
         

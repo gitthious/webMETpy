@@ -4,9 +4,9 @@ header, section, article, footer {
 	border: 3px solid black; 
 }
 
-html, body {
+body {
   height: 100vh;
-  width: 95vw;
+  width: 100vw;
 }
 
 input, select {

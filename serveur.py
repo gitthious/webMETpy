@@ -26,7 +26,7 @@ class ServiceSim(flask_socketio.Namespace):
         Appel le trigger hérité au cas où l'agent n'existe pas.
         """
 ##        print("trigger_event", event, *args)
-        if not self.env or len( self.env.init.index_agents) == 0:
+        if not self.env or len( self.env.init._index_agents) == 0:
             # déclenchement hérité
             return super().trigger_event(event, *args)
         # c'est le 2ème params
@@ -35,7 +35,7 @@ class ServiceSim(flask_socketio.Namespace):
             # si pas str alors c'est une autre commande...pas top!
             if isinstance(args[1], str):
                 clef_agent = args[1] 
-                agent = self.env.init.index_agents.get(clef_agent, None)
+                agent = self.env.init._index_agents.get(clef_agent, None)
         if not agent:
             # déclenchement hérité
             return super().trigger_event(event, *args)
@@ -58,7 +58,7 @@ class ServiceSim(flask_socketio.Namespace):
         # si un des paramètres est dans l'index, on donne l'objet correspondant
         # si non, juste la valeur.
         # Ce n'est pas complet mais ça doit le faire pour l'instant
-        params = [self.env.init.index.get(v,v) for v in args]
+        params = [self.env.init._index.get(v,v) for v in args]
 ##        print(agent, nom_action_sim, params)
 
         # on déclenche l'événement d'arrivé d'ordre avec la valeur
@@ -73,13 +73,13 @@ class ServiceSim(flask_socketio.Namespace):
             self.env = sim.Env(strict=False, dispatcher=self.socketio, init=self.data_init)
             print("sim running", False)
             self.socketio.emit("sim.stoped")
-            self.socketio.emit('init_data', self.env.init.init_data())
+            self.socketio.emit('init_data', self.env.init)
             return
         if self.env.paused:
             self.socketio.emit("sim.paused")
         else:
             self.socketio.emit("sim.resumed")
-        self.socketio.emit('init_data', self.env.init.init_data())
+        self.socketio.emit('init_data', self.env.init)
         
 
     def on_disconnect(self):
@@ -110,7 +110,7 @@ class ServiceSim(flask_socketio.Namespace):
             self.data_init.reinit()
             #self.env = None
             self.socketio.emit("sim.stoped")
-            self.socketio.emit('init_data', self.data_init.init_data())
+            self.socketio.emit('init_data', self.data_init)
 
     def on_step(self):
         print("step")
@@ -125,7 +125,7 @@ class ServiceSim(flask_socketio.Namespace):
         print("loadsim", filename)
         if self.thread_sim: return
         self.env.init.load(filename)
-        self.socketio.emit('init_data', self.env.init.init_data())
+        self.socketio.emit('init_data', self.env.init)
         
     def on_savesim(self, filename):
         print("savesim", filename)
@@ -136,7 +136,7 @@ class ServiceSim(flask_socketio.Namespace):
         if self.thread_sim: return
         
         self.env.init.gen()
-        self.socketio.emit('init_data', self.env.init.init_data())
+        self.socketio.emit('init_data', self.env.init)
         # howto force rendering template
 
     def run(self):
