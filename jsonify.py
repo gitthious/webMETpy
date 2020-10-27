@@ -82,8 +82,8 @@ class Decoder(JSONDecoder):
 if __name__ == '__main__':
 ##    import flask
 ##    app = Flask(__name__)
-##    app.json_encoder = METJSONEncoder
-##    app.json_decoder = METJSONDecoder
+##    app.json_encoder = Encoder
+##    app.json_decoder = Decoder
 
     import dataclasses
     

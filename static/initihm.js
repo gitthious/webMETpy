@@ -37,7 +37,7 @@ function setup() {
 	noCanvas();
 
 	// connect to server:
-	socket = io('/');
+	//socket = io('/');
 
 	wtick = select("#tick");
 	

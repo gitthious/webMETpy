@@ -2,21 +2,25 @@
 # © Thierry hervé
  
 
-from simMETpy import sim
+from simMETpy import sim, modele
 import threading
 from pathlib import Path
+from datetime import timedelta
+
 
 import flask_socketio
 
 class ServiceSim(flask_socketio.Namespace):
-    def __init__(self, namespace, socketio, data_init):
+    def __init__(self, namespace, data_init):
         """
         """
         super().__init__(namespace)
-        self.socketio = socketio
         self.env = None
         self.data_init = data_init
         self.thread_sim = None
+        sim.UpdateEvt.dispatchers.append(self.emit_update)
+        sim.CR.dispatchers.append(self.emit_CR)
+        sim.Tick.dispatchers.append(self.emit_tick)
 
     def trigger_event(self, event, *args):
         """
@@ -43,6 +47,34 @@ class ServiceSim(flask_socketio.Namespace):
         args = args[2:]
         return self.declencher_action_sim(agent, event, *args)
 
+    def emit(self, event, data=None):
+        super().emit(event, data, namespace=self.namespace)
+
+    def emit_init_data(self):
+        self.emit('init_data', self.env.init )
+
+    def emit_update(self, update_evt):
+        obj, attr = update_evt.value
+        # On pack tout l'objet même si ce n'est pas très optimal
+        # cela permet de jsonifier en tenant compte de tout l'objet
+        # et non pas uniquement que de la localisation
+        # car l'encodage de la localisation est contextualisée
+        D = {
+            'obj': obj,
+            'attr': attr,
+        }
+        self.emit('update', D)
+
+    def emit_CR(self, cr_event):
+        simtime, info = cr_event.value
+        cr = modele.Event(self.data_init.dateheure_debut+timedelta(seconds=simtime),
+                          info)
+        self.data_init.events.append(cr)
+        self.emit('CR', cr)            
+
+    def emit_tick(self, cr_tick):
+        self.emit('tick', cr_tick.value)
+
     def declencher_action_sim(self, agent, nom_action_sim, *args):
         """
         Déclenche un événement pour signaler de déclencher
@@ -65,21 +97,21 @@ class ServiceSim(flask_socketio.Namespace):
         # composée du nom de l'action et des paramètres
         agent.arrivee_ordre.succeed((nom_action_sim, params))
         
-        
+
     def on_connect(self):
-        self.socketio.emit("connected")
-        print("Client connect, envoi des data static")
+        self.emit("connected")
+        print("Client connect (%s), envoi des data static" % self.namespace)
         if not self.thread_sim or not self.thread_sim.is_alive():
-            self.env = sim.Env(strict=False, dispatcher=self.socketio, init=self.data_init)
+            self.env = sim.Env(strict=False, init=self.data_init)
             print("sim running", False)
-            self.socketio.emit("sim.stoped")
-            self.socketio.emit('init_data', self.env.init)
+            self.emit("sim.stoped")
+            self.emit_init_data()
             return
         if self.env.paused:
-            self.socketio.emit("sim.paused")
+            self.emit("sim.paused")
         else:
-            self.socketio.emit("sim.resumed")
-        self.socketio.emit('init_data', self.env.init)
+            self.emit("sim.resumed")
+        self.emit_init_data()
         
 
     def on_disconnect(self):
@@ -90,16 +122,16 @@ class ServiceSim(flask_socketio.Namespace):
             self.env = sim.Env(strict=False, dispatcher=self.socketio, init=self.data_init)
             self.thread_sim = self.socketio.start_background_task(self.run)
             print("sim running", self.thread_sim, self.thread_sim.is_alive())
-            self.socketio.emit("sim.started")
+            self.emit("sim.started")
             return
         if self.env.paused:
             print("resume")
             self.env.resume()
-            self.socketio.emit("sim.resumed")
+            self.emit("sim.resumed")
         else:
             print("pause")
             self.env.pause()
-            self.socketio.emit("sim.paused")
+            self.emit("sim.paused")
 
 
     def on_stop(self):
@@ -109,8 +141,8 @@ class ServiceSim(flask_socketio.Namespace):
             self.thread_sim =  None
             self.data_init.reinit()
             #self.env = None
-            self.socketio.emit("sim.stoped")
-            self.socketio.emit('init_data', self.data_init)
+            self.emit("sim.stoped")
+            self.emit_init_data()
 
     def on_step(self):
         print("step")
@@ -125,7 +157,7 @@ class ServiceSim(flask_socketio.Namespace):
         print("loadsim", filename)
         if self.thread_sim: return
         self.env.init.load(filename)
-        self.socketio.emit('init_data', self.env.init)
+        self.emit_init_data()
         
     def on_savesim(self, filename):
         print("savesim", filename)
@@ -136,7 +168,7 @@ class ServiceSim(flask_socketio.Namespace):
         if self.thread_sim: return
         
         self.env.init.gen()
-        self.socketio.emit('init_data', self.env.init)
+        self.emit_init_data()
         # howto force rendering template
 
     def run(self):
