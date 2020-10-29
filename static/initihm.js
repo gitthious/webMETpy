@@ -11,7 +11,7 @@ var vues = [];
 var where_drop;
 var button_savesim, button_loadsim, button_geninit;
 var selecteur;
-
+var index_data = null; 
 /*
 	Doit être définie par le produit. Elle doit être de la forme:
 new Map([	
@@ -201,7 +201,9 @@ function setup() {
 	
 	socket.on('init_data', (msg) => {
 		data = msg; // attention ici à la variable data qui est globale!
-		//console.log('init_data', data);
+		//indexe_objet(data);
+		
+		//console.log('init_data', data, index_data);
 
 		// converti les string en date javascript
 		if(data.events) {
@@ -225,8 +227,10 @@ function setup() {
 				wdateheure_debut.html("?");
 			}
 		}
+		// Voir comment on peut tester si présent ou non
+		vues = create_vues();
+		selecteur =  new Selecteur(vues);
 				
-		create_vues();
 		
 		// Voir comment on peut tester si présent ou non
 		chrono = new VisuChronoSimple(data.dateheure_debut, data.duree);
@@ -234,8 +238,6 @@ function setup() {
 
 		update_vues();
 		
-		// Voir comment on peut tester si présent ou non
-		selecteur =  new Selecteur();
 
 	})	
 }
@@ -276,3 +278,30 @@ function draw() {
 	// ne fait rien mais draw() est utile pour p5.js.
 }
 
+function indexe_objet(obj){
+	if( ! obj ){ return;}
+	if( !index_data){
+		index_data = new Map();
+	}
+	for( att in obj){
+		console.log(att, obj);
+		// si c'est un objet provenant de la sim 
+		// et qu'il est indexable (il a une clef)
+		if( att == '__class__' && obj.hasOwnProperty('clef')){
+			if( obj.clef in index_data){
+				console.log("Attention: objet déjà indexé!", obj);
+			}
+			index_data[obj.clef] = obj;
+		}
+		if(    att.startsWith('_') 
+			|| !Array.isArray(obj[att])
+			|| att == "comportements"  ){ 
+			continue;
+		}
+		for(i=0; i <= obj[att].length; i++){
+		// on déclenche récusivement l'indexatation des sous objets
+			indexe_objet(obj[att][i]);
+		}
+	}
+	
+}

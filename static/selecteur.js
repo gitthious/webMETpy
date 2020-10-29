@@ -3,11 +3,12 @@ encoding utf-8
 © Thierry hervé
 */
 
-var Selecteur = function(){
+var Selecteur = function(vues){
 	var types_selectionnables = [];
 	var selection = null;
 	var winfo = d3.select("#info_select");
 	var waction = d3.select("#action_select");
+	this.vues = vues;
 	
 	var sujet = null, 
 	    mission = null, 
@@ -184,4 +185,42 @@ var Selecteur = function(){
 		socket.emit(mission, sujet, ...parametres);
 	}
 
+	this.on = function( type_selectionnable, nom_vue){
+		
+		function call(d3selection){
+			d3selection
+				.on("mouseenter", function(d){
+					// this est l'élément DOM 
+					if(selecteur.est_un_type_selectionnable(type_selectionnable)){
+						this.classList.add('mousein');
+						let vues = selecteur.vues;
+						for(v=0; v < vues.length; v++){
+							if(vues[v].name == nom_vue) { continue; }
+							d3.select('#'+vues[v].name).selectAll('.'+type_selectionnable).filter(
+								function(x) { return x.clef == d.clef })
+								.each(function(x){ this.classList.add('mousein')});
+						}
+					}
+				})
+				.on("mouseleave", function(d){
+					if(selecteur.est_un_type_selectionnable(type_selectionnable)){
+						this.classList.remove('mousein');
+						let vues = selecteur.vues;
+						for(v=0; v < vues.length; v++){
+							if(vues[v].name == nom_vue) { continue; }
+							d3.select('#'+vues[v].name).selectAll('.'+type_selectionnable).filter(
+								function(x) { return x.clef == d.clef })
+								.each(function(x){ this.classList.remove('mousein')});
+						}
+					}
+				})
+				.on("click", function(d) {
+					selecteur.action(event, d);
+					this.classList.remove('mousein');
+				});
+		}
+		
+		return call
+	}
 }
+
