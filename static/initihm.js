@@ -97,10 +97,9 @@ function setup() {
 		}
 	});
 	
-	socket.on('CR', (msg) => {
-		let dh = moment(msg.dt.__datetime__);
-		evt = {dt: dh.toDate(), nom: msg.nom};
-		//console.log('onCR', 'evt', evt, 'msg', msg);
+	socket.on('EVT', (evt) => {
+		//console.log("on.EVT", evt);
+		evt.dt = moment(evt.dt.__datetime__).toDate();
 		data.events.push(evt);
 		chrono.update(data.events);
 	});
@@ -172,7 +171,7 @@ function setup() {
 	}
 	
 	socket.on('update', (msg) => {
-		//console.log('on update', msg);
+		console.log('on update', msg);
 		
 		if(update_map === undefined) {
 			window.alert("Pas d'update_map!");

@@ -20,6 +20,7 @@ class ServiceSim(flask_socketio.Namespace):
         self.thread_sim = None
         sim.UpdateEvt.dispatchers.append(self.emit_update)
         sim.CR.dispatchers.append(self.emit_CR)
+        sim.Dmd.dispatchers.append(self.emit_Dmd)
         sim.Tick.dispatchers.append(self.emit_tick)
 
     def trigger_event(self, event, *args):
@@ -67,10 +68,17 @@ class ServiceSim(flask_socketio.Namespace):
 
     def emit_CR(self, cr_event):
         simtime, info = cr_event.value
-        cr = modele.Event(self.data_init.dateheure_debut+timedelta(seconds=simtime),
+        cr = modele.CR(self.data_init.dateheure_debut+timedelta(seconds=simtime),
                           info)
         self.data_init.events.append(cr)
-        self.emit('CR', cr)            
+        self.emit('EVT', cr)            
+
+    def emit_Dmd(self, dmd_event):
+        simtime, info = dmd_event.value
+        dmd = modele.Dmd(self.data_init.dateheure_debut+timedelta(seconds=simtime),
+                          info)
+        self.data_init.events.append(dmd)
+        self.emit('EVT', dmd)            
 
     def emit_tick(self, cr_tick):
         self.emit('tick', cr_tick.value)

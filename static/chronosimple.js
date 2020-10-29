@@ -94,6 +94,7 @@ var VisuChronoSimple = function(temps_initial, plage_horaire) {
 			.data(events.filter(d => evt_a_afficher(d)), d => d.dt) //la date sert de clef
 			.join("li")
 				.attr('class', d => d.duree == 0 ? 'evtsimple': 'evtblanc')
+				.classed("dmd", d => d.__class__ == "Dmd")
 				.style('padding-bottom', d => d.duree > 0 ? 
 											Math.floor(d.duree*pixel_par_min)+"px" : "1px" )
 											

@@ -47,16 +47,24 @@ class Encoder(JSONEncoder):
             ta = {'type_agent': o.__name__, 'comportements': []}
             for m in sim.ordres(o) + sim.ordres_de_conduite(o):
                 sig = inspect.signature(m)
+                P = []
+                for p in sig.parameters.values():
+                    if p.annotation is inspect.Parameter.empty: continue
+                    d = {
+                        'name': p.name,
+                        'type': p.annotation.__name__,
+                    }
+                    if p.default != inspect.Parameter.empty:
+                        d['default'] = p.default
+                    P.append(d)
+                    
                 c = {
                     'nom': m.__name__,
-                    'params': [
-                        p.annotation.__name__
-                        for p in sig.parameters.values()
-                        if p.annotation is not inspect.Parameter.empty
-                    ]
+                    'params': P,
                 }
                 ta['comportements'].append(c)
             return ta
+
             
         if isinstance(o, datetime):
             return {'__datetime__': o.isoformat(timespec='seconds')}

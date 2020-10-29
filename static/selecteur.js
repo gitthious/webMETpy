@@ -32,19 +32,31 @@ var Selecteur = function(){
 	};
 	
 	this.afficher_bouton_go = function(event){
-		waction.append("button")
-			.text("Go")
-			.on("click", function() {
-				selecteur.action(event);
-			});
-		waction.append("button")
-			.text("Cancel")
-			.on("click", function() {
-				selecteur.stop_action(event);
-				waction.html("");
-				waction.select("button")
-					.remove();
-			});
+		/* 
+		Si les boutons sont déjà affichés
+		on ne les affiche pas de nouveau
+		On ait ça pour le traitement des params optionnels
+		*/
+		
+		var btOK = waction.select("button[name=OK")
+		if( btOK.empty()){
+			btOK =  waction.append("button").text("OK").attr("name", "OK");
+		}
+		var btCancel = waction.select("button[name=cancel")
+		if( btCancel.empty()){
+			btCancel = waction.append("button").text("Annuler").attr("name", "cancel");
+		}
+		
+		// Il faut réactiver les événements, je ne sais pas pourquoi mais bon!
+		btOK.on("click", function() {
+			selecteur.action(event);
+		});
+		btCancel.on("click", function() {
+			selecteur.stop_action(event);
+			waction.html("");
+			waction.select("button")
+				.remove();
+		});
 	}
 	
 	function* enchainement_actions() {
@@ -98,10 +110,20 @@ var Selecteur = function(){
 		//console.log("enchainement_actions: selection", comportement, params);
 		for(var p=0; p < comportement.params.length; p++){
 			var a_selectionner = [];
-			a_selectionner.push(comportement.params[p]);
+			a_selectionner.push(comportement.params[p].type);
 			//console.log("enchainement_actions: à selectionner", a_selectionner);
-			yield [a_selectionner, null];
+			if(comportement.params[p].default === null){
+				yield [a_selectionner, selecteur.afficher_bouton_go];
+			}
+			else {
+				yield [a_selectionner, null];
+			}
+
 			
+			if(selection === undefined){
+				// on était dans un cas de go avant la fin des params
+				return [[], selecteur.go]
+			}
 			// pour le cas des types à saisir (à revoir)
 			val = selection.clef?selection.clef:selection
 			selecteur.action_select(val);
@@ -134,7 +156,7 @@ var Selecteur = function(){
 		//console.log("Selecteur.action", selection, r.value);
 		[types_selectionnables, action, params] = r.value;
 		this.info_select(types_selectionnables);
-		if(types_selectionnables[0] == "timedelta"){
+		if(types_selectionnables[0] == "int"){
 			waction.append('input')
 				.attr("placeholder", "durée en minute")
 				.on("change", function(d) {

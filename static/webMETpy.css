@@ -59,11 +59,15 @@ input, select {
   background-color: lightgray;
 }
 
+.chronosimple .evtsimple.dmd {
+  color: red;
+}
+
 .chronosimple .evtsimple:hover {
   background-color: gray;
 }
 
-.chronosimple .evtblancd {
+.chronosimple .evtblanc {
   border: 0px solid white;
   background-color: transparent;
 }
