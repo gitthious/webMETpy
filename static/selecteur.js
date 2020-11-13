@@ -18,8 +18,9 @@ var Selecteur = function(vues){
 		return types_selectionnables.indexOf(type) != -1;
 	};
 	
-	this.info_select = function(obj){
-		winfo.html(JSON.stringify(obj));
+	this.affiche_infos_selectionnables = function(infos){
+		msg = "A sélectionner: "+infos.join(", ");
+		winfo.html(msg);
 	};
 	
 	this.action_select = function(obj){
@@ -28,7 +29,8 @@ var Selecteur = function(vues){
 			waction.select("button").remove();
 			return;
 		}
-		var txt = obj; 
+		console.log(obj);
+		var txt = obj.toString().replace('O_','').replace('ODC_','').replaceAll('_', ' '); 
 		waction.html(waction.html()+txt+' ');
 	};
 	
@@ -141,7 +143,7 @@ var Selecteur = function(vues){
 		selection = null;
 		sequence_actions = enchainement_actions();
 		[types_selectionnables, action, params] = sequence_actions.next().value;
-		this.info_select(types_selectionnables);
+		this.affiche_infos_selectionnables(types_selectionnables);
 		sujet = null;
 	    mission = null; 
 		parametres = [];
@@ -156,7 +158,7 @@ var Selecteur = function(vues){
 		var r = sequence_actions.next();
 		//console.log("Selecteur.action", selection, r.value);
 		[types_selectionnables, action, params] = r.value;
-		this.info_select(types_selectionnables);
+		this.affiche_infos_selectionnables(types_selectionnables);
 		if(types_selectionnables[0] == "int"){
 			waction.append('input')
 				.attr("placeholder", "durée en minute")

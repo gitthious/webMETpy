@@ -17,6 +17,7 @@ var VisuChronoSimple = function(temps_initial, plage_horaire) {
 			.attr('class', 'chronosimple')
 
 	nav.append('input')
+		.attr('type', "search")
 		.attr("placeholder", "filtrage...")
 		.on("keyup", function(){
 			filtre_evt_text = this.value.toUpperCase();
