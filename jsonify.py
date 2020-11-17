@@ -28,10 +28,13 @@ def isattr(o):
 class Encoder(JSONEncoder):
     def default(self, o):
         if dataclasses.is_dataclass(o):
+            # récupère tous les attributs de la dataclass
+            # et ceux de l'objet qui sont des properties
             d = dataclasses.asdict(o)
             for a in dir(o):
-                if isinstance(getattr(type(o),a,None),property): 
+                if isinstance(getattr(type(o),a,None),property):
                     d[a] = getattr(o,a)
+
             d['__class__'] = type(o).__name__
             return d
 
@@ -75,16 +78,39 @@ class Encoder(JSONEncoder):
         return super().default(o)
 
 class _Decoder:
+    
+    def __init__(self, model=globals()):
+        self.model = model
+        
     def __call__(self,dct):
         if '__datetime__' in dct:
             return datetime.fromisoformat(dct['__datetime__'])
         if '__geo_interface__' in dct:
             return shape(dct['__geo_interface__'])
+        if '__class__' in dct:
+            cls = self.model[dct['__class__']]
+            args = [
+                dct[f.name] for f in dataclasses.fields(cls)
+                if f.default is dataclasses.MISSING
+            ]
+            kargs = {
+                f.name: dct[f.name] for f in dataclasses.fields(cls)
+                if f.default is not dataclasses.MISSING
+            }
+            del dct['__class__']
+            return cls(*args, **kargs)
+            
         return dct
 
 class Decoder(JSONDecoder):
     def __init__(self, *args, **kargs):
-        kargs['object_hook'] = _Decoder()
+        model = kargs.get('model', None)
+        if model:
+            del kargs['model']
+            kargs['object_hook'] = _Decoder(model)
+        else:
+            kargs['object_hook'] = _Decoder()
+            
         super().__init__(*args, **kargs)
 
 if __name__ == '__main__':
@@ -112,9 +138,14 @@ if __name__ == '__main__':
     d = datetime.now()
     import json
     j = json.dumps((i,d), cls=Encoder)
+    print(i)
     print(j)
     print("decode j")
     print(json.loads(j, cls=Decoder))
+
+    Encoder.attrs_a_encoder = ("name", "unit_price")
+    j = json.dumps((i,d), cls=Encoder)
+    print(j)
     
 ##    with app.app_context() as c:
 ##        j = flask.json.dumps((i,d))

@@ -11,10 +11,11 @@ from datetime import timedelta
 import flask_socketio
 
 class ServiceSim(flask_socketio.Namespace):
-    def __init__(self, namespace, data_init):
+    def __init__(self, namespace, data_init, app):
         """
         """
         super().__init__(namespace)
+        self.app = app
         self.env = None
         self.data_init = data_init
         self.thread_sim = None
@@ -55,16 +56,16 @@ class ServiceSim(flask_socketio.Namespace):
         self.emit('init_data', self.env.init )
 
     def emit_update(self, update_evt):
-        obj, attr = update_evt.value
-        # On pack tout l'objet même si ce n'est pas très optimal
-        # cela permet de jsonifier en tenant compte de tout l'objet
-        # et non pas uniquement que de la localisation
-        # car l'encodage de la localisation est contextualisée
-        D = {
-            'obj': obj,
-            'attr': attr,
-        }
-        self.emit('update', D)
+        import json
+        obj, attrs = update_evt.value
+        attrs = list(attrs)
+        d = self.app.json_encoder().default(obj)
+        ## supprime les attrs qui ne sont pas retenus
+        if len(attrs) != 0:
+            attrs.append('__class__')
+            for a in [k for k in d.keys() if k not in attrs]:
+                del d[a]
+        self.emit('update', {'obj': d, 'clef': obj.clef})
 
     def emit_CR(self, cr_event):
         simtime, info = cr_event.value

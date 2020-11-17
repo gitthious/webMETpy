@@ -185,10 +185,15 @@ function setup() {
 		}
 		
 		var liste = data[nom_liste];
+		//console.log("update, nom_liste", nom_liste, liste);
 		for (let i = 0; i < liste.length; i++) {
-			if(liste[i].clef == msg.obj.clef){
-				liste[i][msg.attr] = msg.obj[msg.attr];
-				//console.log('on update', i, msg.attr, msg.obj, liste[i])
+			if(liste[i].clef == msg.clef){
+				console.log("update", nom_liste, liste[i]);
+				for(const a in msg.obj) {
+					if( a == '__class__') { continue; }
+					console.log("  ", a);
+					liste[i][a] = msg.obj[a];
+				}
 				break;
 			}
 		}
