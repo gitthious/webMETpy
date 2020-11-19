@@ -169,44 +169,11 @@ function setup() {
 	if(update_map === undefined) {
 		window.alert("Pas d'update_map!");
 	}
-	
-	socket.on('update', (msg) => {
-		console.log('on update', msg);
-		
-		if(update_map === undefined) {
-			window.alert("Pas d'update_map!");
-			return;
-		}
-		
-		var nom_liste = update_map.get(msg.obj.__class__);
-		if(nom_liste === undefined){
-			console.log("update non implémenté pour " + msg.obj.__class__);
-			return;
-		}
-		
-		var liste = data[nom_liste];
-		//console.log("update, nom_liste", nom_liste, liste);
-		for (let i = 0; i < liste.length; i++) {
-			if(liste[i].clef == msg.clef){
-				console.log("update", nom_liste, liste[i]);
-				for(const a in msg.obj) {
-					if( a == '__class__') { continue; }
-					console.log("  ", a);
-					liste[i][a] = msg.obj[a];
-				}
-				break;
-			}
-		}
-
-		for(var v=0; v < vues.length; v++){
-			vues[v].update();
-		}
-	})
 
 	
 	socket.on('init_data', (msg) => {
 		data = msg; // attention ici à la variable data qui est globale!
-		//indexe_objet(data);
+		indexe_objet(data);
 		
 		//console.log('init_data', data, index_data);
 
@@ -244,7 +211,25 @@ function setup() {
 		update_vues();
 		
 
-	})	
+	});
+	
+	socket.on('update', (msg) => {
+		console.log('on update', msg);
+		obj = index_data[msg.clef];
+		if(!obj){
+			console.log("Attention, update de l'objet clef =", msg.clef, " non indexé!");
+			return;
+		}
+		for(const att in msg.obj) {
+			if( att == '__class__') { continue; }
+			obj[att] = msg.obj[att];
+		}
+		
+		// mise à jour des vues
+		for(var v=0; v < vues.length; v++){
+			vues[v].update(msg.clef, msg.obj);
+		}
+	});
 }
 
 function update_vues(){
@@ -289,23 +274,26 @@ function indexe_objet(obj){
 		index_data = new Map();
 	}
 	for( att in obj){
-		console.log(att, obj);
 		// si c'est un objet provenant de la sim 
 		// et qu'il est indexable (il a une clef)
 		if( att == '__class__' && obj.hasOwnProperty('clef')){
 			if( obj.clef in index_data){
 				console.log("Attention: objet déjà indexé!", obj);
+				return;
 			}
 			index_data[obj.clef] = obj;
 		}
 		if(    att.startsWith('_') 
 			|| !Array.isArray(obj[att])
-			|| att == "comportements"  ){ 
+			|| att == "comportements"
+			|| att == "localisation" || att == "quais"){ 
 			continue;
 		}
-		for(i=0; i <= obj[att].length; i++){
-		// on déclenche récusivement l'indexatation des sous objets
-			indexe_objet(obj[att][i]);
+		const o = obj[att];
+		//console.log(att);
+		for(i=0; i <= o.length; i++){
+		// on déclenche récusivement l'indexation des sous objets
+			indexe_objet(o[i]);
 		}
 	}
 	
