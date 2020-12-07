@@ -1,3 +1,6 @@
 simMETpy
 flask
 flask_socketio
+#watchdog argh PyYAML
+esy-osm-shape
+

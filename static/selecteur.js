@@ -64,7 +64,7 @@ var Selecteur = function(vues){
 	
 	function* enchainement_actions() {
 
-		if(!data.comportements) { return; }
+		if(!data.comportements) { return [[], null]; }
 		var a_selectionner, action;		
 
 		// 1ère étape: retourne les types d'agents à sélectionner

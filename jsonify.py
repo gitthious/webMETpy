@@ -38,14 +38,6 @@ class Encoder(JSONEncoder):
             d['__class__'] = type(o).__name__
             return d
 
-        if isinstance(o, sim.Init):
-            d = {}
-            for a, v in inspect.getmembers(o, isattr):
-                if a.startswith('_'): continue
-                d[a] = v
-            d['__class__'] = type(o).__name__
-            return d
-
         if isinstance(o, type) and issubclass(o, sim.SimAgent):
             ta = {'type_agent': o.__name__, 'comportements': []}
             for m in sim.ordres(o) + sim.ordres_de_conduite(o):

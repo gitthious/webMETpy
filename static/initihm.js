@@ -43,6 +43,16 @@ function setup() {
 	
 	wdateheure_debut = select("#dateheure_debut")
 	wfacteur_temps = select("#wfacteur_temps")
+	if(wfacteur_temps){
+		wfacteur_temps.changed(() => {
+			//console.log("change_time_factor", wfacteur_temps? wfacteur_temps.value() : wfacteur_temps)
+			v = parseInt(wfacteur_temps.value());
+			if(v){
+				socket.emit('change_time_factor', v);
+			}
+			
+		});
+	}
 	
 	button_play = select("#play_pause");
 	if(button_play){
@@ -85,9 +95,6 @@ function setup() {
 	// Voir comment on peut tester si présent ou non
 	menu = new Menu();
 
-	
-	time_factor_ctrl = select("#time_factor");
-
 	socket.on('tick', (tick) => {
 		if(wtick){
 			wtick.html(tick);
@@ -122,6 +129,12 @@ function setup() {
 		}
 	});
 	
+	socket.on('sim.factor', (factor) => {
+		if(wfacteur_temps){
+			wfacteur_temps.value(1/factor);
+		}
+	});
+
 	socket.on('sim.started', () => {
 		if(button_play){
 			button_play.html("Pause");
@@ -190,7 +203,7 @@ function setup() {
 			data.dateheure_debut = moment(data.dateheure_debut['__datetime__']).toDate();
 			if(wdateheure_debut){
 				wdateheure_debut.html(data.dateheure_debut.toLocaleString());
-				wfacteur_temps.html("x"+data.facteur_temps);
+				//wfacteur_temps.html("x"+data.facteur_temps);
 			}
 		} 
 		else {
@@ -199,8 +212,11 @@ function setup() {
 				wdateheure_debut.html("?");
 			}
 		}
-		// Voir comment on peut tester si présent ou non
-		vues = create_vues();
+		
+		// Pour ne pas le re-créer si init-data est relancé
+		if( vues.length == 0){
+			vues = create_vues();
+		}
 		selecteur =  new Selecteur(vues);
 				
 		
@@ -259,10 +275,6 @@ function drop_acteur(ev) {
   //console.log("ordre do ", agent, "vers", where_drop.nom);
   socket.emit('faire_evacuer', agent, where_drop.nom);
 };
-
-function change_time_factor(ev){
-	socket.emit('change_time_factor', time_factor_ctrl.value());
-}
 
 function draw() {
 	// ne fait rien mais draw() est utile pour p5.js.

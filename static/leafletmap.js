@@ -5,18 +5,28 @@ var LeafletMap = function (view, zoom, data) {
 	*/
 	console.log("LeafletMap", data);
 	
-	var map = L.map('map').setView(view, zoom)
-
-	// create the OSM tile layer with correct attribution
-	var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-	var osmAttrib = 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-	var osm = new L.TileLayer(osmUrl, { 
-		minZoom: 5, maxZoom: 22, attribution: osmAttrib,
+	// Pour avoir un tileLayer vide au départ!
+	// cf. https://stackoverflow.com/questions/28094649/add-option-for-blank-tilelayer-in-leaflet-layergroup
+	var base = {
+	  'Empty': L.tileLayer(''),
+	  'OSM': L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		'attribution': 'Map data &copy; OpenStreetMap contributors', 
+		minZoom: 5, maxZoom: 22, 
 		zoomDelta: 0.05, zoomSnap: 0.1,
-		wheelPxPerZoomLevel: 100	
-		})
-	map.addLayer(osm);
-	L.control.scale().addTo(map);
+		wheelPxPerZoomLevel: 100
+	  })
+	};
+
+	var map = L.map('map', {
+	  'center': view,
+	  'zoom': zoom,
+	  'layers': [
+		base.Empty
+	  ]
+	});
+
+	var control = L.control.layers(base).addTo(map);
+
 
 	var layers_by_feature = new Map();
 
@@ -73,42 +83,23 @@ var LeafletMap = function (view, zoom, data) {
 		console.log(k,v);
 	}
 	*/
+	
+	
 
 	var geojson_group = L.geoJson(gd, {
 			onEachFeature: function (feature, layer) {
 				layers_by_feature[feature.properties.clef] = layer;
-				//console.log("layer", layer);
 				PopUpProperties(feature, layer);
 			},
 			style: function (feature) {
-				//console.log("feature",  );
-				// Pour un objet "vide"
-				if( feature.properties.__class__ == "Voie"){
-					return {weight: 1, color: "black"};
-				}
-				else if( feature.properties.__class__ == "Navette"){
-					return {weight: 2, color: "orange"};
-				}
-				else if( feature.properties.__class__ == "AgentExploitation"){
-					return {weight: 2, color: "black"};
-				}
-				else if( feature.properties.__class__ == "GroupeVoyageurs"){
-					return {weight: 2, color: "blue"};
-				}
-				else if(Object.keys(feature.properties).length != 0){
-					return {weight: 1, color: "red"};
-				} else {
-					return {weight: 1, color: "#000000"};
-				}
+				return {'className': feature.properties.__class__};
 			},
 			pointToLayer: function (feature, latlang) {
-				if( feature.properties.__class__ == "AgentExploitation"){
-					return L.circleMarker(latlang, { radius: 5 });
-				} 
-				else if( feature.properties.__class__ == "GroupeVoyageurs"){
-					return L.circleMarker(latlang, { radius: 1 });
-				} 
-			  }
+				var m = L.circleMarker(latlang, { radius: 5 });
+				m.on('mouseover', () => { m.setRadius(10)});
+				m.on('mouseout', () => { m.setRadius(5)});
+				return m;
+			}
 		}).addTo(map);
 
 	function add_new_layer(feature) {
