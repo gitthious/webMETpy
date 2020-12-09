@@ -17,9 +17,9 @@ var index_data = null;
 new Map([	
 	['type (nom de classe)', 'nom attr dans data'],
 ])
-*/
-var update_map;
 
+var update_map;
+*/
 
 function tick_vers_dateheure(tick){
 	//console.log("tick_vers_dateheure", tick, data)
@@ -88,7 +88,7 @@ function setup() {
 	button_geninit = select("#geninit");
 	if(button_geninit){
 		button_geninit.mousePressed(() => {
-			socket.emit('geninit');
+			socket.emit('gen');
 		});
 	}
 
@@ -179,10 +179,11 @@ function setup() {
 		}
 	})
 
+/*
 	if(update_map === undefined) {
 		window.alert("Pas d'update_map!");
 	}
-
+*/
 	
 	socket.on('init_data', (msg) => {
 		data = msg; // attention ici à la variable data qui est globale!
@@ -224,13 +225,13 @@ function setup() {
 		chrono = new VisuChronoSimple(data.dateheure_debut, data.duree);
 		chrono.update(data.events);	
 
-		update_vues();
+		update_vues(data);
 		
 
 	});
 	
 	socket.on('update', (msg) => {
-		console.log('on update', msg);
+		//console.log('on update', msg);
 		obj = index_data[msg.clef];
 		if(!obj){
 			console.log("Attention, update de l'objet clef =", msg.clef, " non indexé!");
@@ -243,14 +244,20 @@ function setup() {
 		
 		// mise à jour des vues
 		for(var v=0; v < vues.length; v++){
+			console.log('on update',vues[v])
 			vues[v].update(msg.clef, msg.obj);
 		}
 	});
 }
 
-function update_vues(){
+function update_vues(data){
 	for(var v=0; v < vues.length; v++){
-		vues[v].update();
+		if(vues[v].update){
+			vues[v].update(data);
+		}
+		else{
+			
+		}
 	}
 }
 

@@ -3,7 +3,7 @@
 
 import dataclasses
 from datetime import datetime
-from simMETpy import sim
+from simMETpy import sim, modele
 import inspect
 
 from flask import json
@@ -35,6 +35,14 @@ class Encoder(JSONEncoder):
                 if isinstance(getattr(type(o),a,None),property):
                     d[a] = getattr(o,a)
 
+            d['__class__'] = type(o).__name__
+            return d
+
+        if isinstance(o, modele.Init):
+            d = {}
+            for a, v in inspect.getmembers(o, isattr):
+                if a.startswith('_'): continue
+                d[a] = v
             d['__class__'] = type(o).__name__
             return d
 

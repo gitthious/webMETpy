@@ -3,7 +3,7 @@ var LeafletMap = function (view, zoom, data) {
 	data: un objet qui contient des listes d'objets "geojsonables"
 	cad qui ont un attribut localisation
 	*/
-	console.log("LeafletMap", data);
+	//console.log("LeafletMap", data);
 	
 	// Pour avoir un tileLayer vide au départ!
 	// cf. https://stackoverflow.com/questions/28094649/add-option-for-blank-tilelayer-in-leaflet-layergroup

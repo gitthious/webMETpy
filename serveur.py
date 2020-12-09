@@ -7,16 +7,16 @@ import threading
 from pathlib import Path
 from datetime import timedelta
 
-
 import flask_socketio
 
+        
 class ServiceSim(flask_socketio.Namespace):
-    def __init__(self, namespace, initenv, app):
+    def __init__(self, namespace, init_data, app):
         """
         """
         super().__init__(namespace)
         self.app = app
-        self.initenv = initenv 
+        self.init_data = init_data 
         self.env = None
         self.thread_sim = None
         sim.UpdateEvt.dispatchers.append(self.emit_update)
@@ -31,8 +31,8 @@ class ServiceSim(flask_socketio.Namespace):
         doit être la clef de l'agent concerné.
         Appel le trigger hérité au cas où l'agent n'existe pas.
         """
-##        print("trigger_event", event, *args)
-        if not self.env or len( self.env.index_objets) == 0:
+        #print("trigger_event", event, *args)
+        if not self.env or len( self.init_data._index_objets) == 0:
             # déclenchement hérité
             return super().trigger_event(event, *args)
         # c'est le 2ème params
@@ -41,7 +41,8 @@ class ServiceSim(flask_socketio.Namespace):
             # si pas str alors c'est une autre commande...pas top!
             if isinstance(args[1], str):
                 clef_agent = args[1] 
-                agent = self.env.index_objets.get(clef_agent, None)
+                agent = self.init_data._index_objets.get(clef_agent, None)
+        print("trigger_event, agent sim", agent)
         if not agent:
             # déclenchement hérité
             return super().trigger_event(event, *args)
@@ -53,12 +54,7 @@ class ServiceSim(flask_socketio.Namespace):
         super().emit(event, data, namespace=self.namespace)
 
     def emit_init_data(self):
-        data = {
-            'dateheure_debut': self.env.dateheure_debut,
-            'facteur_temps': self.env.factor,
-            'objets_initiaux': list(self.env.index_objets.values())
-            }
-        self.emit('init_data', data)
+        self.emit('init_data', self.init_data)
 
     def emit_update(self, update_evt):
         import json
@@ -74,16 +70,16 @@ class ServiceSim(flask_socketio.Namespace):
 
     def emit_CR(self, cr_event):
         simtime, info = cr_event.value
-        cr = modele.CR(self.env.dateheure_debut+timedelta(seconds=simtime),
+        cr = modele.CR(self.init_data.dateheure_debut+timedelta(seconds=simtime),
                           info)
-        self.env.events.append(cr)
+        self.init_data.events.append(cr)
         self.emit('EVT', cr)            
 
     def emit_Dmd(self, dmd_event):
         simtime, info = dmd_event.value
-        dmd = modele.Dmd(self.env.dateheure_debut+timedelta(seconds=simtime),
+        dmd = modele.Dmd(self.init_data.dateheure_debut+timedelta(seconds=simtime),
                           info)
-        self.env.events.append(dmd)
+        self.init_data.events.append(dmd)
         self.emit('EVT', dmd)            
 
     def emit_tick(self, cr_tick):
@@ -104,8 +100,8 @@ class ServiceSim(flask_socketio.Namespace):
         # si un des paramètres est dans l'index, on donne l'objet correspondant
         # si non, juste la valeur.
         # Ce n'est pas complet mais ça doit le faire pour l'instant
-        params = [self.env.index_objets.get(v,v) for v in args]
-##        print(agent, nom_action_sim, params)
+        params = [self.init_data._index_objets.get(v,v) for v in args]
+        print(agent, nom_action_sim, params)
 
         # on déclenche l'événement d'arrivé d'ordre avec la valeur
         # composée du nom de l'action et des paramètres
@@ -117,15 +113,13 @@ class ServiceSim(flask_socketio.Namespace):
         print("Client connect (%s), envoi des data static" % self.namespace)
         if not self.thread_sim or not self.thread_sim.is_alive():
             print("sim running", False)
-            self.env = self.initenv()
+            if not self.env:
+                self.env = sim.Env()
             self.emit("sim.stoped")
-            self.emit_init_data()
-        
         elif self.env.paused:
             self.emit("sim.paused")
         else:
             self.emit("sim.resumed")
-        print("emit sim.factor", self.env.factor)
         self.emit("sim.factor", self.env.factor)
         self.emit_init_data()
         
@@ -135,9 +129,9 @@ class ServiceSim(flask_socketio.Namespace):
 
     def on_play_pause(self):
         if not self.thread_sim or not self.thread_sim.is_alive():
-            self.env = self.initenv()
             if hasattr(self, "factor"): # on fait un play après un stop
                 self.env.factor = self.factor
+            self.init_data.setup(self.env)
             self.thread_sim = self.socketio.start_background_task(self.run)
             print("sim running", self.thread_sim, self.thread_sim.is_alive())
             self.emit("sim.started")
@@ -153,7 +147,6 @@ class ServiceSim(flask_socketio.Namespace):
         self.emit("sim.factor", self.env.factor)
 
 
-
     def on_stop(self):
         print("stop")
         if self.thread_sim and self.thread_sim.is_alive():
@@ -161,7 +154,8 @@ class ServiceSim(flask_socketio.Namespace):
             self.factor = self.env.factor
             self.env.stop()
             self.thread_sim =  None
-            self.env = self.initenv()
+            self.env = sim.Env()
+            self.init_data.init()
             self.env.factor = self.factor
             self.emit("sim.stoped")
             self.emit_init_data()
@@ -171,6 +165,11 @@ class ServiceSim(flask_socketio.Namespace):
         if self.thread_sim and self.thread_sim.is_alive() and self.env.paused:
             self.env.next_step()
 
+    def on_gen(self):
+        print("gen")
+        self.init_data.gen(self.env)
+        self.emit_init_data()
+        
     def on_change_time_factor(self, time_factor):
         print("change_time_factor", 1/time_factor)
         self.env.factor = 1/time_factor
@@ -178,19 +177,12 @@ class ServiceSim(flask_socketio.Namespace):
     def on_loadsim(self, filename):
         print("loadsim", filename)
         if self.thread_sim: return
-        self.env.load(filename)
+        self.data_init.load(filename)
         self.emit_init_data()
         
     def on_savesim(self, filename):
         print("savesim", filename)
-        self.env.save(filename)
-
-    def on_geninit(self):
-        print("geninit")
-        if self.thread_sim: return
-        self.env = self.initenv()
-        self.emit_init_data()
-        # howto force rendering template
+        self.data_init.save(filename)
 
     def run(self):
         self.env.run()
