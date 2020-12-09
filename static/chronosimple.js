@@ -3,7 +3,7 @@ encoding utf-8
 © Thierry hervé
 */
 
-var VisuChronoSimple = function(temps_initial, plage_horaire) {
+var VisuChronoSimple = function() {
 	var filtre_evt_text = "";
 	var filtrer_evt_blanc = false;
 	var events = [];
@@ -64,20 +64,20 @@ var VisuChronoSimple = function(temps_initial, plage_horaire) {
 	
 	var ul = nav.append('ul');
 				
-	this.update = function (evts){
+	this.update = function (){
+		var evts = data.events
 		if(!evts){ return; }
-		events = evts;
 
 		// tri du plus récent au plus ancien
-		events.sort((e1, e2) => e2.dt - e1.dt); 
+		evts.sort((e1, e2) => e2.dt - e1.dt); 
 
 		// Ajoute des événements "de durée" pour caractériser les intervals de temps vides si l'écart entre 2 events > 1 minute
 		E = [];
-		for(i=0; i < events.length; i++){
-			evt = events[i];
+		for(i=0; i < evts.length; i++){
+			evt = evts[i];
 			evt.duree = 0;
 			E.push(evt)
-			evtpred = events[i+1];
+			evtpred = evts[i+1];
 			// durée en minute
 			duree = evtpred? Math.floor((evt.dt - evtpred.dt)/(60000)) : 0;
 			if(duree > 1){
@@ -102,9 +102,6 @@ var VisuChronoSimple = function(temps_initial, plage_horaire) {
 				.text(d => d.nom != ""? d.dt.toLocaleTimeString()+": "+d.nom : " ");
 	};
 	
-	this.update_temps_courant = function(temps_courant){ // date js
-		// ne fait rien
-	};
 
 	function evt_a_afficher(evt){
 		if( filtre_evt_text != ""){

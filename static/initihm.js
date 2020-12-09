@@ -99,7 +99,6 @@ function setup() {
 		if(wtick){
 			wtick.html(tick);
 			dh = tick_vers_dateheure(tick);
-			chrono.update_temps_courant(dh);
 			wdateheure_debut.html(dh ? dh.toLocaleString() : '?');
 		}
 	});
@@ -108,7 +107,7 @@ function setup() {
 		//console.log("on.EVT", evt);
 		evt.dt = moment(evt.dt.__datetime__).toDate();
 		data.events.push(evt);
-		chrono.update(data.events);
+		update_vues();
 	});
 		
 	socket.on('connected', () => {
@@ -213,20 +212,14 @@ function setup() {
 				wdateheure_debut.html("?");
 			}
 		}
-		
-		// Pour ne pas le re-créer si init-data est relancé
+
+		// pour ne les créer qu'une fois
 		if( vues.length == 0){
 			vues = create_vues();
+			selecteur =  new Selecteur(vues);
 		}
-		selecteur =  new Selecteur(vues);
-				
-		
-		// Voir comment on peut tester si présent ou non
-		chrono = new VisuChronoSimple(data.dateheure_debut, data.duree);
-		chrono.update(data.events);	
-
-		update_vues(data);
-		
+	
+		update_vues();
 
 	});
 	
@@ -244,20 +237,18 @@ function setup() {
 		
 		// mise à jour des vues
 		for(var v=0; v < vues.length; v++){
-			console.log('on update',vues[v])
-			vues[v].update(msg.clef, msg.obj);
+			/*
+				update fonctionne car toutes vues sauf leafletmap.js ont
+				une fonction update sans param et se basent sur data pour leur update.
+			*/
+			vues[v].update(msg.clef, msg.obj); 
 		}
 	});
 }
 
-function update_vues(data){
+function update_vues(){
 	for(var v=0; v < vues.length; v++){
-		if(vues[v].update){
-			vues[v].update(data);
-		}
-		else{
-			
-		}
+		vues[v].update();
 	}
 }
 
