@@ -19,10 +19,21 @@ class ServiceSim(flask_socketio.Namespace):
         self.init_data = init_data 
         self.env = None
         self.thread_sim = None
-        sim.UpdateEvt.dispatchers.append(self.emit_update)
-        sim.CR.dispatchers.append(self.emit_CR)
-        sim.Dmd.dispatchers.append(self.emit_Dmd)
-        sim.Tick.dispatchers.append(self.emit_tick)
+        self.declencheurs = {
+            sim.UpdateEvt:      self.emit_update,
+            sim.CR:             self.emit_CR,
+            sim.Dmd:            self.emit_Dmd,
+            sim.Tick:           self.emit_tick,
+            sim.CRIntervention: self.emit_CRIntervention,
+            }
+        self.controle_dispatchers()
+
+    def controle_dispatchers(self):
+        for evt_type, dispatcheur in self.declencheurs.items():
+            if not dispatcheur in evt_type.dispatchers:
+                evt_type.dispatchers.append(dispatcheur)
+##        for evt_type in self.declencheurs:
+##            print(evt_type, evt_type.dispatchers)
 
     def trigger_event(self, event, *args):
         """
@@ -42,7 +53,7 @@ class ServiceSim(flask_socketio.Namespace):
             if isinstance(args[1], str):
                 clef_agent = args[1] 
                 agent = self.init_data._index_objets.get(clef_agent, None)
-        print("trigger_event, agent sim", agent)
+        #print("trigger_event, agent sim", agent)
         if not agent:
             # déclenchement hérité
             return super().trigger_event(event, *args)
@@ -68,20 +79,39 @@ class ServiceSim(flask_socketio.Namespace):
                 del d[a]
         self.emit('update', {'obj': d, 'clef': obj.clef})
 
-    def emit_CR(self, cr_event):
+    def emit_CR(self, cr_event, CRcls=modele.CR):
         simtime, info = cr_event.value
-        cr = modele.CR(self.init_data.dateheure_debut+timedelta(seconds=simtime),
-                          info)
-        self.init_data.events.append(cr)
-        self.emit('EVT', cr)            
+        dt = self.init_data.dateheure_debut+timedelta(seconds=simtime)
+        newcr = None
+        for cr in self.init_data.events:
+            if isinstance(cr, modele.CRIntervention): continue
+            if (dt, info) == (cr.dt,cr.nom):
+                newcr = cr
+                break
+        if not newcr:    
+            newcr = CRcls(dt,info)
+            self.init_data.events.append(newcr)
+            self.emit('EVT', newcr)            
 
     def emit_Dmd(self, dmd_event):
-        simtime, info = dmd_event.value
-        dmd = modele.Dmd(self.init_data.dateheure_debut+timedelta(seconds=simtime),
-                          info)
-        self.init_data.events.append(dmd)
-        self.emit('EVT', dmd)            
-
+        self.emit_CR(dmd_event, CRcls=modele.Dmd)
+        
+    def emit_CRIntervention(self, cr_intervention):
+        simtime, agent, intervention, args, encours = cr_intervention.value
+        dt = self.init_data.dateheure_debut+timedelta(seconds=simtime)
+        agent = agent.nom
+        intervention = intervention.__name__
+        newcr = None
+        for cr in self.init_data.events:
+            if not isinstance(cr, modele.CRIntervention): continue
+            if (dt, agent, intervention, args, encours) == (cr.dt, cr.agent, cr.intervention, cr.args, cr.encours):
+                newcr = cr
+                break
+        if not newcr:    
+            newcr = modele.CRIntervention(dt, agent, intervention, args, encours)
+            self.init_data.events.append(newcr)
+            self.emit('EVT', newcr)            
+                     
     def emit_tick(self, cr_tick):
         self.emit('tick', cr_tick.value)
 
@@ -101,11 +131,10 @@ class ServiceSim(flask_socketio.Namespace):
         # si non, juste la valeur.
         # Ce n'est pas complet mais ça doit le faire pour l'instant
         params = [self.init_data._index_objets.get(v,v) for v in args]
-        print(agent, nom_action_sim, params)
 
         # on déclenche l'événement d'arrivé d'ordre avec la valeur
         # composée du nom de l'action et des paramètres
-        agent.arrivee_ordre.succeed((nom_action_sim, params))
+        agent._arrivee_ordre.succeed((nom_action_sim, params))
         
 
     def on_connect(self):
@@ -154,11 +183,7 @@ class ServiceSim(flask_socketio.Namespace):
             self.factor = self.env.factor
             self.env.stop()
             self.thread_sim =  None
-            self.env = sim.Env()
-            self.init_data.init()
-            self.env.factor = self.factor
             self.emit("sim.stoped")
-            self.emit_init_data()
 
     def on_step(self):
         print("step")
@@ -166,7 +191,9 @@ class ServiceSim(flask_socketio.Namespace):
             self.env.next_step()
 
     def on_gen(self):
+        if self.thread_sim and self.thread_sim.is_alive(): return
         print("gen")
+        self.env = sim.Env()
         self.init_data.gen(self.env)
         self.emit_init_data()
         

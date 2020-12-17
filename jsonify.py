@@ -23,10 +23,30 @@ shape_types = (
 
 def isattr(o):
     return     not inspect.ismethod(o) \
-           and not inspect.isfunction(o)
+           and not inspect.isfunction(o) \
+           and not isinstance(o, (sim.simpy.Environment, sim.simpy.Event))
 
 class Encoder(JSONEncoder):
     def default(self, o):
+        if isinstance(o, (sim.SimAgent, modele.Init, modele.Event)) \
+        or dataclasses.is_dataclass(o):
+            d = {}
+            try:
+                for a, v in inspect.getmembers(o, isattr):
+                    if a.startswith('_'): continue
+                    d[a] = v
+            except:
+                print(o)
+                raise
+            if hasattr(o, 'intervention_en_cours'):
+                # c'est une fonction
+                if o.intervention_en_cours:
+                    d['intervention_en_cours'] = o.intervention_en_cours.__name__
+                else:
+                    d['intervention_en_cours'] = None
+            d['__class__'] = type(o).__name__
+            return d
+
         if dataclasses.is_dataclass(o):
             # récupère tous les attributs de la dataclass
             # et ceux de l'objet qui sont des properties
@@ -35,14 +55,6 @@ class Encoder(JSONEncoder):
                 if isinstance(getattr(type(o),a,None),property):
                     d[a] = getattr(o,a)
 
-            d['__class__'] = type(o).__name__
-            return d
-
-        if isinstance(o, modele.Init):
-            d = {}
-            for a, v in inspect.getmembers(o, isattr):
-                if a.startswith('_'): continue
-                d[a] = v
             d['__class__'] = type(o).__name__
             return d
 
@@ -68,14 +80,17 @@ class Encoder(JSONEncoder):
                 ta['comportements'].append(c)
             return ta
 
-            
+        
         if isinstance(o, datetime):
             return {'__datetime__': o.isoformat(timespec='seconds')}
         
         if isinstance(o, shape_types):
             return mapping(o)
-        
-        return super().default(o)
+        try:
+            return super().default(o)
+        except TypeError:
+            print(o)
+            raise
 
 class _Decoder:
     

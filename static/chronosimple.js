@@ -65,6 +65,7 @@ var VisuChronoSimple = function() {
 	var ul = nav.append('ul');
 				
 	this.update = function (){
+		//console.log("chronosimple.update:", data.events)
 		var evts = data.events
 		if(!evts){ return; }
 
@@ -104,6 +105,9 @@ var VisuChronoSimple = function() {
 	
 
 	function evt_a_afficher(evt){
+		if( evt.__class__ != "CR" && evt.__class__ != "Dmd"){
+			return false;
+		}
 		if( filtre_evt_text != ""){
 			if( evt.nom.toUpperCase().indexOf(filtre_evt_text) == -1){
 				return false;

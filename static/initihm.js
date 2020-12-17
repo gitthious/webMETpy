@@ -11,7 +11,8 @@ var vues = [];
 var where_drop;
 var button_savesim, button_loadsim, button_geninit;
 var selecteur;
-var index_data = null; 
+var index_data = new Map(); 
+
 /*
 	Doit être définie par le produit. Elle doit être de la forme:
 new Map([	
@@ -23,6 +24,7 @@ var update_map;
 
 function tick_vers_dateheure(tick){
 	//console.log("tick_vers_dateheure", tick, data)
+	if(!data) {return null;}
 	if(data.dateheure_debut){
 		let dh = moment(data.dateheure_debut);
 		dh.add(tick/*/data.facteur_temps*/, 's');
@@ -99,7 +101,9 @@ function setup() {
 		if(wtick){
 			wtick.html(tick);
 			dh = tick_vers_dateheure(tick);
-			wdateheure_debut.html(dh ? dh.toLocaleString() : '?');
+			if(wdateheure_debut){
+				wdateheure_debut.html(dh ? dh.toLocaleString() : '?');
+			}
 		}
 	});
 	
@@ -111,6 +115,7 @@ function setup() {
 	});
 		
 	socket.on('connected', () => {
+		console.log("connected", socket)
 		if(wtick){
 			wtick.html("connecté");
 		}
@@ -178,17 +183,12 @@ function setup() {
 		}
 	})
 
-/*
-	if(update_map === undefined) {
-		window.alert("Pas d'update_map!");
-	}
-*/
-	
 	socket.on('init_data', (msg) => {
 		data = msg; // attention ici à la variable data qui est globale!
+		index_data = new Map(); 
 		indexe_objet(data);
 		
-		//console.log('init_data', data, index_data);
+		//console.log('init_data', data);
 
 		// converti les string en date javascript
 		if(data.events) {
@@ -224,7 +224,7 @@ function setup() {
 	});
 	
 	socket.on('update', (msg) => {
-		//console.log('on update', msg);
+		console.log('on update', msg);
 		obj = index_data[msg.clef];
 		if(!obj){
 			console.log("Attention, update de l'objet clef =", msg.clef, " non indexé!");
@@ -280,15 +280,12 @@ function draw() {
 
 function indexe_objet(obj){
 	if( ! obj ){ return;}
-	if( !index_data){
-		index_data = new Map();
-	}
 	for( att in obj){
 		// si c'est un objet provenant de la sim 
 		// et qu'il est indexable (il a une clef)
 		if( att == '__class__' && obj.hasOwnProperty('clef')){
 			if( obj.clef in index_data){
-				console.log("Attention: objet déjà indexé!", obj);
+				//console.log("Attention: objet déjà indexé!", obj);
 				return;
 			}
 			index_data[obj.clef] = obj;
@@ -296,7 +293,7 @@ function indexe_objet(obj){
 		if(    att.startsWith('_') 
 			|| !Array.isArray(obj[att])
 			|| att == "comportements"
-			|| att == "localisation" || att == "quais"){ 
+			|| att == "localisation" || att == "coordinates"){ 
 			continue;
 		}
 		const o = obj[att];

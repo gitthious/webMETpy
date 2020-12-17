@@ -45,14 +45,13 @@ input, select {
 
 
 .mousein {
-	stroke: red;
-	color: red;
+	stroke: red !important; 
+	color: red !important;
 }
 
 .chronosimple ul {
 	list-style-type: none;
 	padding: 0;
-	height:350px;
 	overflow-y:scroll;
 }
 
