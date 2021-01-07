@@ -93,10 +93,8 @@ class ServiceSim(flask_socketio.Namespace):
             self.init_data.events.append(newcr)
             self.emit('EVT', newcr)            
 
-    def emit_Dmd(self, dmd_event):
-        self.emit_CR(dmd_event, CRcls=modele.Dmd)
         
-    def emit_CRIntervention(self, cr_intervention):
+    def emit_CRIntervention(self, cr_intervention, CRcls=modele.CRIntervention):
         simtime, agent, intervention, args, encours = cr_intervention.value
         dt = self.init_data.dateheure_debut+timedelta(seconds=simtime)
         agent = agent.nom
@@ -108,10 +106,13 @@ class ServiceSim(flask_socketio.Namespace):
                 newcr = cr
                 break
         if not newcr:    
-            newcr = modele.CRIntervention(dt, agent, intervention, args, encours)
+            newcr = CRcls(dt, agent, intervention, args, encours)
             self.init_data.events.append(newcr)
             self.emit('EVT', newcr)            
-                     
+
+    def emit_Dmd(self, dmd_event):
+        self.emit_CRIntervention(dmd_event, CRcls=modele.Dmd)
+
     def emit_tick(self, cr_tick):
         self.emit('tick', cr_tick.value)
 
@@ -141,14 +142,16 @@ class ServiceSim(flask_socketio.Namespace):
         self.emit("connected")
         print("Client connect (%s), envoi des data static" % self.namespace)
         if not self.thread_sim or not self.thread_sim.is_alive():
-            print("sim running", False)
             if not self.env:
                 self.env = sim.Env()
             self.emit("sim.stoped")
+            print("sim not running")
         elif self.env.paused:
             self.emit("sim.paused")
+            print("sim running, paused")
         else:
             self.emit("sim.resumed")
+            print("sim running, resumed")
         self.emit("sim.factor", self.env.factor)
         self.emit_init_data()
         

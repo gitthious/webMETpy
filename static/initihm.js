@@ -134,6 +134,7 @@ function setup() {
 	});
 	
 	socket.on('sim.factor', (factor) => {
+		console.log('sim.factor', factor);
 		if(wfacteur_temps){
 			wfacteur_temps.value(1/factor);
 		}
@@ -188,7 +189,7 @@ function setup() {
 		index_data = new Map(); 
 		indexe_objet(data);
 		
-		//console.log('init_data', data);
+		console.log('init_data', data);
 
 		// converti les string en date javascript
 		if(data.events) {
@@ -224,7 +225,7 @@ function setup() {
 	});
 	
 	socket.on('update', (msg) => {
-		console.log('on update', msg);
+		//console.log('on update', msg);
 		obj = index_data[msg.clef];
 		if(!obj){
 			console.log("Attention, update de l'objet clef =", msg.clef, " non indexé!");

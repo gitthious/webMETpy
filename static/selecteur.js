@@ -29,8 +29,8 @@ var Selecteur = function(vues){
 			waction.select("button").remove();
 			return;
 		}
-		console.log(obj);
-		var txt = obj.toString().replace('O_','').replace('ODC_','').replaceAll('_', ' '); 
+		//console.log(obj);
+		var txt = obj.toString().replaceAll('_', ' '); 
 		waction.html(waction.html()+txt+' ');
 	};
 	
@@ -195,12 +195,16 @@ var Selecteur = function(vues){
 					// this est l'élément DOM 
 					if(selecteur.est_un_type_selectionnable(type_selectionnable)){
 						this.classList.add('mousein');
+						//console.log('mouseenter', this);
 						let vues = selecteur.vues;
 						for(v=0; v < vues.length; v++){
 							if(vues[v].name == nom_vue) { continue; }
 							d3.select('#'+vues[v].name).selectAll('.'+type_selectionnable).filter(
 								function(x) { return x.clef == d.clef })
-								.each(function(x){ this.classList.add('mousein')});
+								.each(function(x){ 
+									this.classList.add('mousein'); 
+									//console.log('mouseenter', this);
+									});
 						}
 					}
 				})

@@ -51,7 +51,7 @@ var Menu = function() {
 		menu.selectAll("li")
 			.data(items, d => d)
 			.join("li")
-				.html(d => d.replace('O_','').replace('ODC_','').replaceAll('_', ' ') )
+				.html(d => d.replaceAll('_', ' ') )
 				.on("click", function(d){
 					//console.log("click on menu item", this, d);
 					//selecteur.selection = d;

@@ -36,7 +36,7 @@ class Encoder(JSONEncoder):
                     if a.startswith('_'): continue
                     d[a] = v
             except:
-                print(o)
+                print("Object resposable de l'erreur %s" % repr(o))
                 raise
             if hasattr(o, 'intervention_en_cours'):
                 # c'est une fonction
@@ -60,7 +60,7 @@ class Encoder(JSONEncoder):
 
         if isinstance(o, type) and issubclass(o, sim.SimAgent):
             ta = {'type_agent': o.__name__, 'comportements': []}
-            for m in sim.ordres(o) + sim.ordres_de_conduite(o):
+            for m in sim.ordres(o) + sim.ordres_de_conduite(o) + sim.actions_magiques(o):
                 sig = inspect.signature(m)
                 P = []
                 for p in sig.parameters.values():
@@ -86,10 +86,12 @@ class Encoder(JSONEncoder):
         
         if isinstance(o, shape_types):
             return mapping(o)
+
+        
         try:
             return super().default(o)
-        except TypeError:
-            print(o)
+        except:
+            print("Object resposable de l'erreur %s" % repr(o))
             raise
 
 class _Decoder:
