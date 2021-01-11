@@ -1,0 +1,85 @@
+ <!DOCTYPE html>
+<html>
+<head>
+	<title>Tests interventions</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+.intervention {
+	background: red;
+	list-style-type: none;
+	padding-top: 0.25em;
+	padding-bottom: 0.1em;
+}
+
+.intervention_encours {
+	padding-left: 1em;
+}
+
+.encours {
+	background: #e6f2ff; 
+	list-style-type: none;
+	padding: 0.1em;
+}
+
+	</style>
+</head>
+<body>
+	<section id="interventions"/>
+	<button type="button" onclick="update()">update</button>
+	<script src="d3.min.js"></script>
+	<script src="interventions.js"></script>
+	<script>
+	var data = {
+		events : []
+	}
+	var vi = new VisuInterventions()
+	var nb = 0;
+	var evts = [
+			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 0, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "début"},
+			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 10, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "s1"},
+			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 10, 0), agent:"Gérard", intervention: "Evacuation", args: "Y", encours: "début"},
+			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 11, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "fin"},
+			{
+				__class__: "CRIntervention",
+				dt: new Date(2021, 1, 8, 9, 15, 0), 
+				agent:"Gérard", 
+				intervention: "Evacuation", 
+				args: "Y", 
+				encours: "continue"
+			},
+			{
+				__class__: "CRIntervention",
+				dt: new Date(2021, 1, 8, 9, 18, 0), 
+				agent:"Mathilde", 
+				intervention: "Visite interstations", 
+				args: "Z, A", 
+				encours: "début"
+			},
+			{
+				__class__: "CRIntervention",
+				dt: new Date(2021, 1, 8, 9, 20, 0), 
+				agent:"Gérard", 
+				intervention: "Evacuation", 
+				args: "Y", 
+				encours: "continue2"
+			},
+			{
+				__class__: "CRIntervention",
+				dt: new Date(2021, 1, 8, 9, 21, 0), 
+				agent:"Gérard", 
+				intervention: "Evacuation", 
+				args: "Y", 
+				encours: "fin"
+			}
+		]
+	
+	function update(){
+		if(nb >= evts.length) return;
+		data.events.push(evts[nb])
+		nb += 1
+		vi.update()
+	}
+	</script>
+</body>
+</html>
