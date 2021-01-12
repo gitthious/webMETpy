@@ -26,18 +26,19 @@
 </head>
 <body>
 	<section id="interventions"/>
-	<button type="button" onclick="update()">update</button>
+	<button type="button" onclick="ajout_un_evt()">ajout_un_evt()</button>
 	<script src="d3.min.js"></script>
 	<script src="interventions.js"></script>
 	<script>
 	var data = {
-		events : []
+		events : [
+			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 0, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "début"},
+			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 10, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "s1"}
+		]
 	}
 	var vi = new VisuInterventions()
-	var nb = 0;
+	var nb = 0
 	var evts = [
-			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 0, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "début"},
-			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 10, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "s1"},
 			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 10, 0), agent:"Gérard", intervention: "Evacuation", args: "Y", encours: "début"},
 			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 11, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "fin"},
 			{
@@ -74,7 +75,8 @@
 			}
 		]
 	
-	function update(){
+	function ajout_un_evt(){
+		console.log(nb)
 		if(nb >= evts.length) return;
 		data.events.push(evts[nb])
 		nb += 1

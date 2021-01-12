@@ -15,6 +15,7 @@ var VisuInterventions = function() {
 	this.update = function (){
 		
 		// reorg events
+		console.log("VisuInterventions.update",data.events)
 		var evts = data.events;
 		if(!evts){ return; }
 		var interventions = [];
@@ -24,29 +25,30 @@ var VisuInterventions = function() {
 			Cette implémentation n'est pas très efficace mais ça le fait tant qu'il n'y
 			a pas trop d'interventions.
 		*/
-		
+		var dmd = null;
 		for(i=0; i<evts.length; i++){
 			var e = evts[i];
-			if( e.__class__ != "CRIntervention") continue;
-			if( e.encours == "début") {
+			if( ! (e.__class__ == "CRIntervention" || e.__class__ == "Dmd") ) continue;
+			if( e.encours == "début" || e.encours == "debut") {
 				interventions.unshift([e.dt, e.agent, e.intervention, e.args , []]);
-				
 			} else {
 				// il faut permettre d'afficher un en cours incohérent
 				//ex. avant un début, après une fin
 				for(j=0; j<interventions.length; j++){
+					//console.log(interventions[j], e)
 					var [dt, agent, intervention, args, encours] = interventions[j];
 					if(    e.dt >= dt 
 						&& agent == e.agent 
 						&& intervention == e.intervention 
 						&& args == e.args){
 							encours.unshift(e.dt.toLocaleTimeString() + ': ' + e.encours)
-							break
-						}
+							//break
+					}
 				}
 			}
 		}
-		//console.log("VisuInterventions.update",interventions)
+		
+		console.log("VisuInterventions.update",interventions)
 		elt.selectAll('li')
 			.data(interventions, d => d)
 			.join('li')
@@ -59,17 +61,6 @@ var VisuInterventions = function() {
 						.join('li')
 							.classed('encours', true)
 							.text(d => d)
-				/*
-				.each( function (d) {
-					d3.select(this).append('ul')
-						.classed('intervention_encours', true)
-						.selectAll('li')
-							.data(d[4])
-							.join('li')
-								.classed('encours', true)
-								.text(d => d)
-				});
-				*/
 	}
 
 	this.update();
