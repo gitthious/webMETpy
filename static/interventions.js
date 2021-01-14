@@ -15,7 +15,7 @@ var VisuInterventions = function() {
 	this.update = function (){
 		
 		// reorg events
-		console.log("VisuInterventions.update",data.events)
+		//console.log("VisuInterventions.update",data.events)
 		var evts = data.events;
 		if(!evts){ return; }
 		var interventions = [];
@@ -48,11 +48,29 @@ var VisuInterventions = function() {
 			}
 		}
 		
-		console.log("VisuInterventions.update",interventions)
+		//console.log("VisuInterventions.update",interventions)
 		elt.selectAll('li')
 			.data(interventions, d => d)
 			.join('li')
 				.classed('intervention', true)
+				.classed('finie', function (d){
+					// on ajoute une classe css suplémentaire si l'intervention est finie
+					for(var e=0; e<d[4].length; e++){
+						if(d[4][e].search("fin") != -1){
+							return true;
+						}
+					}
+					return false;
+				})
+				.classed('dmd', function (d){
+					// on ajoute une classe css suplémentaire si l'intervention est finie
+					if(d[4].length > 0){
+						if( d[4][0].search("dmd") != -1){
+							return true;
+						}
+					}
+					return false;
+				})
 				.text(d => d[0].toLocaleTimeString() + ': ' + d[1] + ' ' + d[2] + ' ' + d[3])
 				.append('ul')
 					.classed('intervention_encours', true)

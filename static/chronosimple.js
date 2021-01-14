@@ -66,10 +66,11 @@ var VisuChronoSimple = function() {
 				
 	this.update = function (){
 		//console.log("chronosimple.update:", data.events)
-		var evts = data.events
+		var evts = [...data.events] // copie les évents ...
 		if(!evts){ return; }
-
+		// ...pour pouvoir les trier à l'envers sans changer data.events
 		// tri du plus récent au plus ancien
+		
 		evts.sort((e1, e2) => e2.dt - e1.dt); 
 
 		// Ajoute des événements "de durée" pour caractériser les intervals de temps vides si l'écart entre 2 events > 1 minute

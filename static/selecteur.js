@@ -29,36 +29,39 @@ var Selecteur = function(vues){
 			waction.select("button").remove();
 			return;
 		}
+		
 		//console.log(obj);
 		var txt = obj.toString().replaceAll('_', ' '); 
 		waction.html(waction.html()+txt+' ');
+
+		// Il faut que le bouton soit placé après le text pour prendre en compte le click!?!
+		var btCancel = waction.select("button[name=cancel]")
+		if( ! btCancel.empty()){
+			btCancel.remove()
+		}
+		btCancel = waction.append("button").text("Annuler").attr("name", "cancel");
+		btCancel.on("click", function() {
+			selecteur.stop_action(event);
+			waction.html("");
+			waction.select("button").remove();
+		});
 	};
 	
 	this.afficher_bouton_go = function(event){
 		/* 
 		Si les boutons sont déjà affichés
 		on ne les affiche pas de nouveau
-		On ait ça pour le traitement des params optionnels
+		On fait ça pour le traitement des params optionnels
 		*/
 		
-		var btOK = waction.select("button[name=OK")
+		var btOK = waction.select("button[name=OK]")
 		if( btOK.empty()){
 			btOK =  waction.append("button").text("OK").attr("name", "OK");
-		}
-		var btCancel = waction.select("button[name=cancel")
-		if( btCancel.empty()){
-			btCancel = waction.append("button").text("Annuler").attr("name", "cancel");
 		}
 		
 		// Il faut réactiver les événements, je ne sais pas pourquoi mais bon!
 		btOK.on("click", function() {
 			selecteur.action(event);
-		});
-		btCancel.on("click", function() {
-			selecteur.stop_action(event);
-			waction.html("");
-			waction.select("button")
-				.remove();
 		});
 	}
 	
@@ -68,13 +71,24 @@ var Selecteur = function(vues){
 		var a_selectionner, action;		
 
 		// 1ère étape: retourne les types d'agents à sélectionner
+		// Ils sont définis pour chaque profil (cf. template html)
+		// alors qu'avant ils l'étaient par les data.comportements
 		a_selectionner = []
+		if(types_agents_selectionnables)
+		{
+			for(var i=0; i < types_agents_selectionnables.length; i++){
+				a_selectionner.push(types_agents_selectionnables[i])
+			}
+		}
+		/*
 		if(data.comportements)
 		{
 			for(var i=0; i < data.comportements.length; i++){
 				a_selectionner.push(data.comportements[i].type_agent)
 			}
 		}
+		*/
+
 		//console.log("enchainement_actions: à selectionner", a_selectionner);
 		yield [a_selectionner, null];
 		sujet = selection.clef
@@ -82,18 +96,51 @@ var Selecteur = function(vues){
 		selecteur.action_select(sujet);
 
 		// 2ème étape: retourne les comportements à sélectionner dans un menu
+		// Ils l'étaient à partir du type de la selection (sujet)
+		// Il faut aller les chercher dans la selection elle même
+		
 		items = []; var tp;
+		var ODC = [
+			"Confirmation_fermeture_portes", 
+			"Autorisation_acces_plateforme", 
+			"Autorisation_acces_PEQ", 
+			"Station_vers_ou_evacuer", 
+			"KSA_acces_navette"
+		]
 		for(var i=0; i < data.comportements.length; i++){
-			if(data.comportements[i].type_agent != selection.__class__) continue;
 			tp = data.comportements[i]
-			for(var j=0; j <data.comportements[i].comportements.length; j++){
-				items.push(data.comportements[i].comportements[j].nom);
+			if(tp.type_agent != selection.__class__) continue;
+			for(var j=0; j <tp.comportements.length; j++){
+				var nom = tp.comportements[j].nom
+				// On ne récupère que les ordres de conduite 
+				// Pour l'instant car on n'a pas la liste de ceux
+				// effectivement attendus
+				var nom_odc = false;
+				for(var n=0; n<ODC.length; n++){
+					if(nom == ODC[n]){
+						nom_odc = true;
+						break;
+					}
+				}
+				if(nom_odc){
+					if(selection.intervention_en_cours && selection.attente_ordre_de_conduite){
+						items.push(nom);
+					}
+				} else {
+					if(!selection.intervention_en_cours){
+						items.push(nom);
+					}
+				}
 			}
 			break;
 		}
 		
 		//console.log("enchainement_actions: à selectionner", items);
-		yield [[], menu.show, items];
+		if(items.length == 0){
+			selecteur.stop_action();
+		}else{
+			yield [[], menu.show, items];
+		}
 		
 		mission = selection;
 		selecteur.action_select(mission);
@@ -168,6 +215,7 @@ var Selecteur = function(vues){
 					d3.select(this).remove();
 					selecteur.action(event, parseInt(d));
 				});
+		} else if(types_selectionnables[0] == "bool"){
 		} else {
 			if(action){
 				action(event, params);

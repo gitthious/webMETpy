@@ -13,6 +13,9 @@ var button_savesim, button_loadsim, button_geninit;
 var selecteur;
 var index_data = new Map(); 
 
+// Pour faire un sélecteur spécifique à chaque vue
+var types_agents_selectionnables;
+
 /*
 	Doit être définie par le produit. Elle doit être de la forme:
 new Map([	
@@ -213,6 +216,7 @@ function setup() {
 				wdateheure_debut.html("?");
 			}
 		}
+
 
 		// pour ne les créer qu'une fois
 		if( vues.length == 0){
