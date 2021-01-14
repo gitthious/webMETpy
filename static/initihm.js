@@ -149,7 +149,9 @@ function setup() {
 			button_play.removeAttribute('disabled')
 			button_step.attribute('disabled', true);
 			button_stop.removeAttribute('disabled');
-			button_loadsim.attribute('disabled', true);
+			if(button_loadsim){
+				button_loadsim.attribute('disabled', true);
+			}
 			button_geninit.attribute('disabled', true);
 		}
 	})
@@ -159,7 +161,9 @@ function setup() {
 			button_play.removeAttribute('disabled')
 			button_step.removeAttribute('disabled');
 			button_stop.removeAttribute('disabled');
-			button_loadsim.attribute('disabled', true);
+			if(button_loadsim){
+				button_loadsim.attribute('disabled', true);
+			}
 			button_geninit.attribute('disabled', true);
 		}
 	})
@@ -169,7 +173,9 @@ function setup() {
 			button_play.removeAttribute('disabled')
 			button_step.attribute('disabled', true);
 			button_stop.removeAttribute('disabled');
-			button_loadsim.attribute('disabled', true);
+			if(button_loadsim){
+				button_loadsim.attribute('disabled', true);
+			}
 			button_geninit.attribute('disabled', true);
 		}
 	})
@@ -179,7 +185,9 @@ function setup() {
 			button_play.removeAttribute('disabled')
 			button_step.attribute('disabled', true);
 			button_stop.attribute('disabled', true);
-			button_loadsim.removeAttribute('disabled');
+			if(button_loadsim){
+				button_loadsim.removeAttribute('disabled');
+			}
 			button_geninit.removeAttribute('disabled');
 		}
 		if(wtick){

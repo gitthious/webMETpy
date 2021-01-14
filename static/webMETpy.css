@@ -45,8 +45,11 @@ input, select {
 
 
 .mousein {
-	stroke: red !important; 
-	color: red !important;
+	/*stroke: red !important; 
+	color: red !important;*/
+	font-weight: bolder !important;
+	font-size: medium !important;
+    stroke-width: 8px !important;
 }
 
 .chronosimple ul {

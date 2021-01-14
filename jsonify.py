@@ -87,6 +87,8 @@ class Encoder(JSONEncoder):
         if isinstance(o, shape_types):
             return mapping(o)
 
+        if inspect.isfunction(o):
+            return o.__qualname__
         
         try:
             return super().default(o)

@@ -44,6 +44,7 @@ var Selecteur = function(vues){
 			selecteur.stop_action(event);
 			waction.html("");
 			waction.select("button").remove();
+			
 		});
 	};
 	
@@ -105,7 +106,8 @@ var Selecteur = function(vues){
 			"Autorisation_acces_plateforme", 
 			"Autorisation_acces_PEQ", 
 			"Station_vers_ou_evacuer", 
-			"KSA_acces_navette"
+			"KSA_acces_navette",
+			"Autorisation_depreparation"
 		]
 		for(var i=0; i < data.comportements.length; i++){
 			tp = data.comportements[i]
@@ -215,7 +217,6 @@ var Selecteur = function(vues){
 					d3.select(this).remove();
 					selecteur.action(event, parseInt(d));
 				});
-		} else if(types_selectionnables[0] == "bool"){
 		} else {
 			if(action){
 				action(event, params);
@@ -234,6 +235,7 @@ var Selecteur = function(vues){
 		//console.log("go", mission, sujet, parametres);
 		socket.emit(mission, sujet, ...parametres);
 	}
+	
 
 	this.on = function( type_selectionnable, nom_vue){
 		
@@ -269,8 +271,19 @@ var Selecteur = function(vues){
 					}
 				})
 				.on("click", function(d) {
-					selecteur.action(event, d);
+					// Pour éviter qu'il y est encore des event handler de click
+					// On ne peut cliquer que sur les types sélectionnables
+					if( selecteur.est_un_type_selectionnable(d.__class__ )){
+						selecteur.action(event, d);
+					}
 					this.classList.remove('mousein');
+					let vues = selecteur.vues;
+					for(v=0; v < vues.length; v++){
+						if(vues[v].name == nom_vue) { continue; }
+						d3.select('#'+vues[v].name).selectAll('.'+type_selectionnable).filter(
+							function(x) { return x.clef == d.clef })
+							.each(function(x){ this.classList.remove('mousein')});
+					}
 				});
 		}
 		
