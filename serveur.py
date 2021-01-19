@@ -118,8 +118,8 @@ class ServiceSim(flask_socketio.Namespace):
 
     def declencher_action_sim(self, agent, nom_action_sim, *args):
         """
-        Déclenche un événement pour signaler de déclencher
-        l'action de l'agent si la sim n'est pas en pause
+        Déclenche un événement pour assurer le lancement d'une
+        action de l'agent si la sim n'est pas en pause
         ou arrêtée.
         """
         if not self.env \
@@ -128,6 +128,9 @@ class ServiceSim(flask_socketio.Namespace):
         or self.env.paused:
             # ne fait rien si le context n'est pas approprié
             return
+        self._declencher_action_sim(agent, nom_action_sim, *args)
+        
+    def _declencher_action_sim(self, agent, nom_action_sim, *args):
         # si un des paramètres est dans l'index, on donne l'objet correspondant
         # si non, juste la valeur.
         # Ce n'est pas complet mais ça doit le faire pour l'instant
@@ -137,7 +140,6 @@ class ServiceSim(flask_socketio.Namespace):
         # composée du nom de l'action et des paramètres
         agent._arrivee_ordre.succeed((nom_action_sim, params))
         
-
     def on_connect(self):
         self.emit("connected")
         print("Client connect (%s), envoi des data static" % self.namespace)
@@ -215,7 +217,41 @@ class ServiceSim(flask_socketio.Namespace):
         self.data_init.save(filename)
 
     def run(self):
+        self.charger_interventions_pre_enregistrees()
         self.env.run()
         print("la simulation s'est arrêtée")
 
+    def charger_interventions_pre_enregistrees(self,
+                                nom_fichier="./interventions_prévues.json"):
+        import json
+        I = []
+        try:
+            with open(nom_fichier) as f:
+                I = json.load(f)
+        except FileNotFoundError:
+            print("Pas d'intervention pré-enregistrée")
 
+        def go(event):
+            agent, nom, args = event._value
+            self._declencher_action_sim(agent, nom, *args)
+
+        import simpy.events
+        class InterventionEvent(simpy.events.Event):
+           def __init__(self, env: 'Environment', tick, agent, nom_intervention, args ):
+              super().__init__(env)
+              self.callbacks: EventCallbacks = [go]
+              self._value = (agent, nom_intervention, args)
+              self._delay = tick
+              self._ok = True
+              self.env.schedule(self, delay=tick)
+              
+        for tick, nom_agent, nom_intervention, params in I:
+
+            try:
+                agent = self.init_data._index_objets[nom_agent]
+            except KeyError:
+                print(nom_agent, "n'existe pas")
+                continue
+            
+            InterventionEvent(self.env, tick, agent, nom_intervention, params)
+            
