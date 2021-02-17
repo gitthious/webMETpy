@@ -217,7 +217,11 @@ class ServiceSim(flask_socketio.Namespace):
         self.data_init.save(filename)
 
     def run(self):
-        self.charger_interventions_pre_enregistrees()
+        if hasattr(self.init_data, "fichier_interventions") \
+        and self.init_data.fichier_interventions:
+            self.charger_interventions_pre_enregistrees(
+                self.init_data.fichier_interventions
+                )
         self.env.run()
         print("la simulation s'est arrêtée")
 
@@ -226,7 +230,7 @@ class ServiceSim(flask_socketio.Namespace):
         import json
         I = []
         try:
-            with open(nom_fichier) as f:
+            with open(nom_fichier, encoding='utf-8') as f:
                 I = json.load(f)
         except FileNotFoundError:
             print("Pas d'intervention pré-enregistrée")

@@ -1,7 +1,9 @@
-simMETpy
-flask
-flask_socketio
-#watchdog argh PyYAML
+flask==1.0.2
+flask_socketio==4.3.2
 esy-osm-shape
-simplejson
+simplejson==3.17.2
+pipe==1.6.0
+gevent==1.4.0
+gevent-websocket==0.10.1
+watchdog==0.10.4
 
