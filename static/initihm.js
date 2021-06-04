@@ -9,7 +9,7 @@ var data = null;
 var chrono,  menu; 
 var vues = [];
 var where_drop;
-var button_savesim, button_loadsim, button_geninit;
+var button_savesim, button_loadsim;
 var selecteur;
 var index_data = new Map(); 
 
@@ -90,12 +90,6 @@ function setup() {
 			socket.emit('savesim', select("#saved_url").value());
 		});
 	}
-	button_geninit = select("#geninit");
-	if(button_geninit){
-		button_geninit.mousePressed(() => {
-			socket.emit('gen');
-		});
-	}
 
 	// Voir comment on peut tester si présent ou non
 	menu = new Menu();
@@ -132,7 +126,6 @@ function setup() {
 			button_play.attribute('disabled', true)
 			button_step.attribute('disabled', true);
 			button_stop.attribute('disabled', true);
-			button_geninit.attribute('disabled', true);
 		}
 	});
 	
@@ -152,7 +145,6 @@ function setup() {
 			if(button_loadsim){
 				button_loadsim.attribute('disabled', true);
 			}
-			button_geninit.attribute('disabled', true);
 		}
 	})
 	socket.on('sim.paused', () => {
@@ -164,7 +156,6 @@ function setup() {
 			if(button_loadsim){
 				button_loadsim.attribute('disabled', true);
 			}
-			button_geninit.attribute('disabled', true);
 		}
 	})
 	socket.on('sim.resumed', () => {
@@ -176,7 +167,6 @@ function setup() {
 			if(button_loadsim){
 				button_loadsim.attribute('disabled', true);
 			}
-			button_geninit.attribute('disabled', true);
 		}
 	})
 	socket.on('sim.stoped', () => {
@@ -188,7 +178,6 @@ function setup() {
 			if(button_loadsim){
 				button_loadsim.removeAttribute('disabled');
 			}
-			button_geninit.removeAttribute('disabled');
 		}
 		if(wtick){
 			wtick.html("connecté");

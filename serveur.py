@@ -43,6 +43,10 @@ class ServiceSim(flask_socketio.Namespace):
         Appel le trigger hérité au cas où l'agent n'existe pas.
         """
         #print("trigger_event", event, *args)
+        if not hasattr(self.init_data, '_index_objets'):
+            # déclenchement hérité
+            print("Attention: L'initdata n'est pas indexable!")
+            return super().trigger_event(event, *args)
         if not self.env or len( self.init_data._index_objets) == 0:
             # déclenchement hérité
             return super().trigger_event(event, *args)

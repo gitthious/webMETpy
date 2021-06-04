@@ -35,9 +35,6 @@ def create_webapp(name):
     
     # enlève le file:/ de l'uri
 
-    import os
-    os.environ['FLASK_ENV']="development"
-    
     app = Flask(name)
     webMETpy.webMETpy_flask_extension(app)
     import webMETpy.jsonify
@@ -53,7 +50,7 @@ def create_webapp(name):
     # le param 'json' permet d'utiliser le json de Flask et donc celui défini dans l'init.
     socketio = SocketIO(app, async_mode='threading', json=flask.json) 
     app.config['TEMPLATES_AUTO_RELOAD'] = True
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0 # reload tous les fichiers
+    #app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0 # reload tous les fichiers
     
     
     return app, socketio
