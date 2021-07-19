@@ -17,8 +17,8 @@ class webMETpy_flask_extension:
         app.json_encoder = jsonify.Encoder
         app.json_decoder = jsonify.Decoder
 
-        app.add_url_rule('/webMETpy.static/<path:filename>',
-                         'webMETpy.static', self.send_static_file)
+##        app.add_url_rule('/webMETpy.static/<path:filename>',
+##                         'webMETpy.static', self.send_static_file)
 
     def send_static_file(self, filename):
         """Send a static file from the webMETpy_flask_extension static directory."""
@@ -37,9 +37,6 @@ def create_webapp(name):
 
     app = Flask(name)
     webMETpy.webMETpy_flask_extension(app)
-    import webMETpy.jsonify
-    app.json_encoder = webMETpy.jsonify.Encoder
-    app.json_decoder = webMETpy.jsonify.Decoder
                 
     # asyn_mode n'est pas recommandé, je n'ai pas compris pourquoi...
     # cependant, sans lui, point de thread...donc on le garde pour l'instant
@@ -49,8 +46,6 @@ def create_webapp(name):
     # autre chose: le serveur ne se lance pas avec l'idle?!?
     # le param 'json' permet d'utiliser le json de Flask et donc celui défini dans l'init.
     socketio = SocketIO(app, async_mode='threading', json=flask.json) 
-    app.config['TEMPLATES_AUTO_RELOAD'] = True
-    #app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0 # reload tous les fichiers
     
     
     return app, socketio

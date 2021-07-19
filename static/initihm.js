@@ -3,13 +3,8 @@ encoding utf-8
 © Thierry hervé
 */
 
-var socket; // the websocket
-var wtick, button_play, button_stop, button_step, wdateheure_debut, wfacteur_temps;
-var data = null;
 var chrono,  menu; 
 var vues = [];
-var where_drop;
-var button_savesim, button_loadsim;
 var selecteur;
 var index_data = new Map(); 
 
@@ -25,84 +20,15 @@ new Map([
 var update_map;
 */
 
-function tick_vers_dateheure(tick){
-	//console.log("tick_vers_dateheure", tick, data)
-	if(!data) {return null;}
-	if(data.dateheure_debut){
-		let dh = moment(data.dateheure_debut);
-		dh.add(tick/*/data.facteur_temps*/, 's');
-		return dh.toDate(); 
-	} else {
-		return null;
-	}
-}
 
 function setup() {
 	
 	noCanvas();
 
-	// connect to server:
-	//socket = io('/');
-
-	wtick = select("#tick");
-	
-	wdateheure_debut = select("#dateheure_debut")
-	wfacteur_temps = select("#wfacteur_temps")
-	if(wfacteur_temps){
-		wfacteur_temps.changed(() => {
-			//console.log("change_time_factor", wfacteur_temps? wfacteur_temps.value() : wfacteur_temps)
-			v = parseInt(wfacteur_temps.value());
-			if(v){
-				socket.emit('change_time_factor', v);
-			}
-			
-		});
-	}
-	
-	button_play = select("#play_pause");
-	if(button_play){
-		button_play.mousePressed(() => {
-			socket.emit('play_pause');
-		});
-	}
-	button_stop = select("#stop");
-	if(button_stop){
-		button_stop.mousePressed(() => {
-			socket.emit('stop');
-		});
-	}
-	button_step = select("#step")
-	if(button_step){
-		button_step.mousePressed(() => {
-			socket.emit('step');
-		});
-	}
-	button_loadsim = select("#loadsim");
-	if(button_loadsim){
-		button_loadsim.mousePressed(() => {
-			socket.emit('loadsim', select("#loaded_url").value());
-		});
-	}
- 
-	button_savesim = select("#savesim");
-	if(button_savesim){
-		button_savesim.mousePressed(() => {
-			socket.emit('savesim', select("#saved_url").value());
-		});
-	}
 
 	// Voir comment on peut tester si présent ou non
 	menu = new Menu();
 
-	socket.on('tick', (tick) => {
-		if(wtick){
-			wtick.html(tick);
-			dh = tick_vers_dateheure(tick);
-			if(wdateheure_debut){
-				wdateheure_debut.html(dh ? dh.toLocaleString() : '?');
-			}
-		}
-	});
 	
 	socket.on('EVT', (evt) => {
 		//console.log("on.EVT", evt);
@@ -110,79 +36,7 @@ function setup() {
 		data.events.push(evt);
 		update_vues();
 	});
-		
-	socket.on('connected', () => {
-		console.log("connected", socket)
-		if(wtick){
-			wtick.html("connecté");
-		}
-	});
 
-	socket.on('connect_error', (error) => {
-		if(wtick){
-			wtick.html("Non connecté: " + error);
-		}
-		if(button_play){
-			button_play.attribute('disabled', true)
-			button_step.attribute('disabled', true);
-			button_stop.attribute('disabled', true);
-		}
-	});
-	
-	socket.on('sim.factor', (factor) => {
-		console.log('sim.factor', factor);
-		if(wfacteur_temps){
-			wfacteur_temps.value(1/factor);
-		}
-	});
-
-	socket.on('sim.started', () => {
-		if(button_play){
-			button_play.html("Pause");
-			button_play.removeAttribute('disabled')
-			button_step.attribute('disabled', true);
-			button_stop.removeAttribute('disabled');
-			if(button_loadsim){
-				button_loadsim.attribute('disabled', true);
-			}
-		}
-	})
-	socket.on('sim.paused', () => {
-		if(button_play){
-			button_play.html("Play");
-			button_play.removeAttribute('disabled')
-			button_step.removeAttribute('disabled');
-			button_stop.removeAttribute('disabled');
-			if(button_loadsim){
-				button_loadsim.attribute('disabled', true);
-			}
-		}
-	})
-	socket.on('sim.resumed', () => {
-		if(button_play){
-			button_play.html("Pause");
-			button_play.removeAttribute('disabled')
-			button_step.attribute('disabled', true);
-			button_stop.removeAttribute('disabled');
-			if(button_loadsim){
-				button_loadsim.attribute('disabled', true);
-			}
-		}
-	})
-	socket.on('sim.stoped', () => {
-		if(button_play){
-			button_play.html("Play");
-			button_play.removeAttribute('disabled')
-			button_step.attribute('disabled', true);
-			button_stop.attribute('disabled', true);
-			if(button_loadsim){
-				button_loadsim.removeAttribute('disabled');
-			}
-		}
-		if(wtick){
-			wtick.html("connecté");
-		}
-	})
 
 	socket.on('init_data', (msg) => {
 		data = msg; // attention ici à la variable data qui est globale!
@@ -254,27 +108,6 @@ function update_vues(){
 	}
 }
 
-function allowDrop(ev) {
-  ev.preventDefault();
-}
-
-function drag(ev) {
-  ev.dataTransfer.setData('text/plain', ev.target.id);
-  //console.log("drag", ev.target.id);
-}
-
-function drop_acteur(ev) {
-  ev.preventDefault();
-  var agent = ev.dataTransfer.getData('text/plain');
-  //console.log("drop_acteur", agent);
-  if(where_drop == null) 
-  { 
-	console.log('drop_acteur: Attention, "where_drop" est null');
-	return; 
-  }
-  //console.log("ordre do ", agent, "vers", where_drop.nom);
-  socket.emit('faire_evacuer', agent, where_drop.nom);
-};
 
 function draw() {
 	// ne fait rien mais draw() est utile pour p5.js.

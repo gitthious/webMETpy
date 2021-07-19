@@ -7,11 +7,14 @@ var LeafletMap = function (view, zoom, data) {
 	
 	// Pour avoir un tileLayer vide au départ!
 	// cf. https://stackoverflow.com/questions/28094649/add-option-for-blank-tilelayer-in-leaflet-layergroup
+	var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+	var osmAttrib='Map data &copy; OpenStreetMap contributors';
+	
 	var base = {
 	  'Empty': L.tileLayer(''),
-	  'OSM': L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		'attribution': 'Map data &copy; OpenStreetMap contributors', 
-		minZoom: 5, maxZoom: 22, 
+	  'OSM': L.tileLayer(osmUrl, {
+		'attribution': osmAttrib, 
+		minZoom: 1, maxZoom: 22, 
 		zoomDelta: 0.05, zoomSnap: 0.1,
 		wheelPxPerZoomLevel: 100
 	  })
@@ -22,9 +25,18 @@ var LeafletMap = function (view, zoom, data) {
 	  'zoom': zoom,
 	  'layers': [
 		base.Empty
-	  ]
+	  ],
+	  fullscreenControl: true,
+	  fullscreenControlOptions: {position: 'topleft'}
 	});
 
+	L.control.scale().addTo(map);
+	L.Control.geocoder().addTo(map);
+	L.control.mousePosition().addTo(map);
+	
+	var osm2 = new L.TileLayer(osmUrl, {minZoom: 0, maxZoom: 13, attribution: osmAttrib });
+	var miniMap = new L.Control.MiniMap(osm2, { toggleDisplay: true, minimized: true }).addTo(map);
+	
 	var control = L.control.layers(base).addTo(map);
 
 
