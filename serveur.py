@@ -31,18 +31,19 @@ class ServiceSim(flask_socketio.Namespace):
             print("sim not running")
         elif self.env.paused:
             self.emit("sim.paused")
+            self.emit("sim.factor", self.factor)
             print("sim running, paused")
         else:
             self.emit("sim.resumed")
+            self.emit("sim.factor", self.factor)
             print("sim running, resumed")
-        self.emit("sim.factor", self.factor)
         
     def on_disconnect(self):
         print("Un client c'est déconnecté")
 
     def on_play_pause(self):
         if not self.env:
-            self.env = self.sim_factory()
+            self.env = self.sim_factory(self)
             self.env.factor = self.factor
             self.thread_sim = self.socketio.start_background_task(self.run)
             print("sim running", self.thread_sim, self.thread_sim.is_alive())
@@ -55,7 +56,7 @@ class ServiceSim(flask_socketio.Namespace):
             print("pause")
             self.env.pause()
             self.emit("sim.paused")
-        self.emit("sim.factor", self.factor)
+##        self.emit("sim.factor", self.factor)
 
 
     def on_stop(self):
