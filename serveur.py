@@ -1,14 +1,11 @@
-# encoding utf-8
+# coding: utf-8
 # © Thierry hervé
  
 
 import threading
-from pathlib import Path
-from datetime import timedelta
-
 import flask_socketio
 
-        
+
 class ServiceSim(flask_socketio.Namespace):
     def __init__(self, namespace, sim_factory, app):
         """
@@ -56,7 +53,6 @@ class ServiceSim(flask_socketio.Namespace):
             print("pause")
             self.env.pause()
             self.emit("sim.paused")
-##        self.emit("sim.factor", self.factor)
 
 
     def on_stop(self):
@@ -93,5 +89,6 @@ class ServiceSim(flask_socketio.Namespace):
         self.env.process(self.tick())
         self.env.run()
         print("la simulation s'est arrêtée")
+
 
 

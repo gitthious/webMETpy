@@ -3,6 +3,8 @@ from flask import send_from_directory
 
 from . import serveur
 from . import jsonify
+from . import gui
+
 
 class webMETpy_flask_extension:
     _static_dir = os.path.realpath(
@@ -17,8 +19,8 @@ class webMETpy_flask_extension:
         app.json_encoder = jsonify.Encoder
         app.json_decoder = jsonify.Decoder
 
-##        app.add_url_rule('/webMETpy.static/<path:filename>',
-##                         'webMETpy.static', self.send_static_file)
+        app.add_url_rule('/webMETpy/static/<path:filename>',
+                         'webMETpy/static', self.send_static_file)
 
     def send_static_file(self, filename):
         """Send a static file from the webMETpy_flask_extension static directory."""
