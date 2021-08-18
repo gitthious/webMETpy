@@ -90,5 +90,77 @@ class ServiceSim(flask_socketio.Namespace):
         self.env.run()
         print("la simulation s'est arrêtée")
 
+import itertools
+from .jsonify import getattrval
 
+class ViewObjectController:
+    def __init__(self, serveur, controled_objects):
+        """
+        Pour chaque type d'objet, associe une ou plusieurs vues et pour
+        chacune une liste d'attributs à transmettre.
+        cad un dict d'objets { o:  (v1, v2, ...) }
+        """
+        self.serveur = serveur
+        
+        for o in controled_objects:
+            # tous les attributs publiques
+            attrs = [a for a,v in getattrval(o)]
+            if len(attrs) == 0:
+                print("Attention: aucun attribut de '%s' à controler" % repr(o))
+            UpdateNotificationGenerator(type(o), self.notify_update_view, attrs)
 
+    def notify_update_view(self, obj, attr, old, val):
+        self.update_ui(**{ attr: val })
+
+    def update_ui(self, **attrs_vals):
+        raise NotImplementedError()
+                
+class CreateNotificationGenerator:
+    """
+    """
+    def __init__(self, cls, notify_func):
+
+        # cls est déjà instrumentée
+        if hasattr(self, 'original_init'): return
+        self.original_init = cls.__init__
+        self.cls = cls
+        
+        def init_wrapper(*args, **kargs):
+            self.original_init(*args, **kargs)
+            notify_func(*args, **kargs)
+
+        self.cls.__init__ = init_wrapper
+
+    def detach(self):
+        self.cls.__init__ = self.original_init
+
+    def __del__(self):
+        self.detach()
+
+class UpdateNotificationGenerator:
+    """
+    """
+    def __init__(self, cls, notify_func, attrs):
+
+        self.cls =  cls
+        self.original_setattr = cls.__setattr__
+        
+        def setattr_wrapper(obj, attr, val):
+                
+            if attr not in attrs:
+                self.original_setattr(obj, attr, val)
+                return
+                
+            oldval = getattr(obj, attr, None)
+            if val == oldval: return
+
+            self.original_setattr(obj, attr, val)
+            notify_func(obj, attr, oldval, val)
+
+        self.cls.__setattr__ = setattr_wrapper
+
+    def detach(self):
+        self.cls.__setattr__ = self.original_setattr
+
+    def __del__(self):
+        self.detach()

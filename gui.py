@@ -36,6 +36,13 @@ class ControlSim(JSCSSMixin, MacroElement):
         
         var socket;
         var data = null;
+        try {
+            $( window )
+        }
+        catch {
+            alert("Il faut être connecté à internet!");
+        }
+        
         $( window ).on( "load", () => {
             console.log("DOM is ready!")
             // DOM is ready! (c'est comme ça qu'on fait en jquery)
@@ -66,7 +73,7 @@ class ControlSim(JSCSSMixin, MacroElement):
             });
             
 	    $("#step").click(() => {
-                console.log("step")
+                //console.log("step")
                 socket.emit('step');
             });
 	
@@ -157,42 +164,54 @@ import folium.plugins
 class MapFiring(JSCSSMixin, MacroElement):
     _template = Template(u"""
         {% macro script(this, kwargs) %}
-            {{this._parent.get_name()}}.eachLayer((layer) => {
-                layer.bindPopup('Hello');
+         $( window ).on( "load", () => {
+            socket.on('update_map', (update_info) => {
+                //console.log("receive change on socket for map", update_info)
+                {{this._parent.get_name()}}.eachLayer((layer) => {
+                    if( layer._id != update_info.id ) { return; }
+                    
+                    //console.log("find layer", update_info.id);
+                    for(let i=0; i<update_info.fires.length; i++){
+                        let fire = update_info.fires[i];
+                        layer.fire(fire.name, fire.args);
+                    }
+                });
             });
-            
+         });   
         {% endmacro %}    
 """)
-    def __init__(self):
-         super().__init__()
-    
-def Map(**kargs):
-    folium_map = folium.Map(**kargs)
 
-    folium.plugins.MousePosition(position="topright").add_to(folium_map)
-    folium.plugins.Geocoder().add_to(folium_map)
+from . serveur import ViewObjectController
     
-##    folium.plugins.Draw(export=True).add_to(folium_map)
+class Map(folium.Map, ViewObjectController):
+    def __init__(self, serveur, *args, **kwargs):
+        ViewObjectController.__init__(self, serveur, [])
+        super().__init__(*args, **kwargs)
 
-    folium.plugins.Fullscreen(
-        position="topleft",
-        title="Expand me",
-        title_cancel="Exit me",
-        force_separate_button=True,
+        folium.plugins.MousePosition(position="topright").add_to(self)
+        folium.plugins.Geocoder().add_to(self)
+    
+##        folium.plugins.Draw(export=True).add_to(self)
+
+        folium.plugins.Fullscreen(
+            position="topleft",
+            title="Expand me",
+            title_cancel="Exit me",
+            force_separate_button=True,
+            
+        ).add_to(self)
+
+        # minimized=True KO
+        folium.plugins.MiniMap(
+            toggle_display=True,
+            minimized=True
+            ).add_to(self)
+
+        MapFiring().add_to(self)
+    
+    def update_ui(self, **attrs_vals):
+        self.serveur.emit("update_map", attrs_vals)
         
-    ).add_to(folium_map)
-
-    # minimized=True KO
-    folium.plugins.MiniMap(
-        toggle_display=True,
-        minimized=True
-        ).add_to(folium_map)
-
-    MapFiring().add_to(folium_map)
-    
-    return folium_map
-
-
 class ContainerFuild(Div):
     _template = Template("""
         {% macro html(this, kwargs) %}
