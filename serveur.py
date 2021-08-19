@@ -142,8 +142,10 @@ class UpdateNotificationGenerator:
     """
     def __init__(self, cls, notify_func, attrs):
 
-        self.cls =  cls
+        # cls est déjà instrumentée
+        if hasattr(self, 'original_setattr'): return
         self.original_setattr = cls.__setattr__
+        self.cls =  cls
         
         def setattr_wrapper(obj, attr, val):
                 

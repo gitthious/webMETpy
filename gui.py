@@ -51,6 +51,8 @@ class ControlSim(JSCSSMixin, MacroElement):
             socket.on('connected', () => {
                 console.log("socket connected")
                 $("#tick").html("connecté");
+		dh = tick_vers_dateheure(0);
+                $("#dateheure").html(dh ? dh.toLocaleString() : '{{this.date_inconnue}}');
             });
             $("#facteur_temps").change(() => {
                 v = parseInt($("#facteur_temps").val());
@@ -78,7 +80,7 @@ class ControlSim(JSCSSMixin, MacroElement):
             });
 	
             socket.on('tick', (tick) => {
-                console.log("tick")
+                //console.log("tick")
 		$("#tick").html(tick);
 		dh = tick_vers_dateheure(tick);
 		$("#dateheure").html(dh ? dh.toLocaleString() : '{{this.date_inconnue}}');
@@ -90,7 +92,8 @@ class ControlSim(JSCSSMixin, MacroElement):
 		$("#play_pause").attr('disabled', true)
 		$("#step").attr('disabled', true);
 		$("#stop").attr('disabled', true);
-		$("#dateheure").html('{{this.date_inconnue}}');
+		dh = tick_vers_dateheure(0);
+                $("#dateheure").html(dh ? dh.toLocaleString() : '{{this.date_inconnue}}');
             });
 	
             socket.on('sim.factor', (factor) => {
@@ -129,7 +132,8 @@ class ControlSim(JSCSSMixin, MacroElement):
                 $("#step").attr('disabled', true);
                 $("#stop").attr('disabled', true);
                 $("#tick").html("connecté");
-                $("#dateheure").html('{{this.date_inconnue}}');
+                dh = tick_vers_dateheure(0);
+                $("#dateheure").html(dh ? dh.toLocaleString() : '{{this.date_inconnue}}');
             });
 
         });
