@@ -184,14 +184,12 @@ class MapFiring(JSCSSMixin, MacroElement):
          });   
         {% endmacro %}    
 """)
-
-from . serveur import ViewObjectController
     
-class Map(folium.Map, ViewObjectController):
+class Map(folium.Map):
     def __init__(self, serveur, *args, **kwargs):
-        ViewObjectController.__init__(self, serveur, [])
         super().__init__(*args, **kwargs)
-
+        self.serveur = serveur
+        
         folium.plugins.MousePosition(position="topright").add_to(self)
         folium.plugins.Geocoder().add_to(self)
     
@@ -213,7 +211,7 @@ class Map(folium.Map, ViewObjectController):
 
         MapFiring().add_to(self)
     
-    def update_ui(self, **attrs_vals):
+    def update_ui(self, obj, **attrs_vals):
         self.serveur.emit("update_map", attrs_vals)
         
 class ContainerFuild(Div):
