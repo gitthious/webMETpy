@@ -4,84 +4,79 @@
 	<title>Tests interventions</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="interventions.css">
 	<style>
-.intervention {
-	background: red;
-	list-style-type: none;
-	padding-top: 0.25em;
-	padding-bottom: 0.1em;
-}
-
-.intervention_encours {
-	padding-left: 1em;
-}
-
-.encours {
-	background: #e6f2ff; 
-	list-style-type: none;
-	padding: 0.1em;
-}
-
 	</style>
 </head>
 <body>
 	<section id="interventions"/>
 	<button type="button" onclick="ajout_un_evt()">ajout_un_evt()</button>
 	<script src="d3.min.js"></script>
-	<script src="interventions.js"></script>
+	<script src="interventions.js"></script>	
 	<script>
-	var data = {
-		events : [
-			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 0, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "début"},
-			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 10, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "s1"}
-		]
-	}
-	var vi = new VisuInterventions()
-	var nb = 0
-	var evts = [
-			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 10, 0), agent:"Gérard", intervention: "Evacuation", args: "Y", encours: "début"},
-			{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 11, 0), agent:"Machin", intervention: "Evacuation", args: "X", encours: "fin"},
-			{
-				__class__: "CRIntervention",
-				dt: new Date(2021, 1, 8, 9, 15, 0), 
-				agent:"Gérard", 
-				intervention: "Evacuation", 
-				args: "Y", 
-				encours: "continue"
-			},
-			{
-				__class__: "CRIntervention",
-				dt: new Date(2021, 1, 8, 9, 18, 0), 
-				agent:"Mathilde", 
-				intervention: "Visite interstations", 
-				args: "Z, A", 
-				encours: "début"
-			},
-			{
-				__class__: "CRIntervention",
-				dt: new Date(2021, 1, 8, 9, 20, 0), 
-				agent:"Gérard", 
-				intervention: "Evacuation", 
-				args: "Y", 
-				encours: "continue2"
-			},
-			{
-				__class__: "CRIntervention",
-				dt: new Date(2021, 1, 8, 9, 21, 0), 
-				agent:"Gérard", 
-				intervention: "Evacuation", 
-				args: "Y", 
-				encours: "fin"
+		var vi = new VisuInterventions();
+		var nb = 0;
+		var events = [
+				{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 0, 0), agent:"Machin", nom: "Evacuation", args: "X", encours: "début"},
+				{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 10, 0), agent:"Machin", nom: "Evacuation", args: "X", encours: "s1"}
+			];
+		var evts_a_ajouter = [
+				{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 10, 0), agent:"Gérard", nom: "Evacuation", args: "Y", encours: "début"},
+				{__class__: "CRIntervention", dt: new Date(2021, 1, 8, 9, 11, 0), agent:"Machin", nom: "Evacuation", args: "X", encours: "fin"},
+				{
+					__class__: "CRIntervention",
+					dt: new Date(2021, 1, 8, 9, 15, 0), 
+					agent:"Gérard", 
+					nom: "Evacuation", 
+					args: "Y", 
+					encours: "continue"
+				},
+				{
+					__class__: "CRIntervention",
+					dt: new Date(2021, 1, 8, 9, 18, 0), 
+					agent:"Mathilde", 
+					nom: "Visite interstations", 
+					args: "Z, A", 
+					encours: "début"
+				},
+				{
+					__class__: "CRIntervention",
+					dt: new Date(2021, 1, 8, 9, 20, 0), 
+					agent:"Gérard", 
+					nom: "Evacuation", 
+					args: "Y", 
+					encours: "continue2"
+				},
+				{
+					__class__: "CRIntervention",
+					dt: new Date(2021, 1, 8, 9, 21, 0), 
+					agent:"Gérard", 
+					nom: "Evacuation", 
+					args: "Y", 
+					encours: "fin"
+				},
+				{
+					__class__: "Dmd",
+					dt: new Date(2021, 1, 8, 9, 23, 0), 
+					agent:"Mathilde", 
+					nom: "Visite interstations", 
+					args: "Z, A", 
+					encours: "dmd"
+				}
+			];
+
+		for(let i=0; i < events.length; i++){
+			vi.update(events[i]);
+		}
+
+		function ajout_un_evt(){
+			if(nb >= evts_a_ajouter.length) {
+				alert("Plus d'intervention");
+				return;
 			}
-		]
-	
-	function ajout_un_evt(){
-		console.log(nb)
-		if(nb >= evts.length) return;
-		data.events.push(evts[nb])
-		nb += 1
-		vi.update()
-	}
+			vi.update(evts_a_ajouter[nb]);
+			nb += 1
+		}
 	</script>
 </body>
 </html>

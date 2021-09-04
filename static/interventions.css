@@ -1,0 +1,25 @@
+.intervention {
+	background: lightblue;
+	list-style-type: none;
+	padding-top: 0.25em;
+	padding-bottom: 0.1em;
+}
+
+.intervention_encours {
+	padding-left: 1em;
+}
+
+.encours {
+	background: #e6f2ff; 
+	list-style-type: none;
+	padding: 0.1em;
+}
+
+.dmd {
+	background: red; 
+}
+
+.finie {
+	background: lightgreen; 
+}	
+

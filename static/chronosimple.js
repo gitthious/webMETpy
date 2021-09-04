@@ -3,16 +3,16 @@ encoding utf-8
 © Thierry hervé
 */
 
-var VisuChronoSimple = function() {
+var VisuChronoSimple = function(parent_selector="#chrono") {
 	var filtre_evt_text = "";
 	var filtrer_evt_blanc = false;
 	var events = [];
 	
 	/* pour supprimer en cas de rechargement de la page 
 	   ou de relance du serveur web */
-	d3.select("#chrono").select("nav").remove();
+	d3.select(parent_selector).select("nav").remove();
 
-	var nav = d3.select("#chrono")
+	var nav = d3.select(parent_selector)
 		.append("nav")
 			.attr('class', 'chronosimple')
 
@@ -63,31 +63,35 @@ var VisuChronoSimple = function() {
 		})
 	
 	var ul = nav.append('ul');
-				
-	this.update = function (){
-		//console.log("chronosimple.update:", data.events)
-		var evts = [...data.events] // copie les évents ...
-		if(!evts){ return; }
-		// ...pour pouvoir les trier à l'envers sans changer data.events
-		// tri du plus récent au plus ancien
-		
-		evts.sort((e1, e2) => e2.dt - e1.dt); 
+	
+	var events = []
+	
+	this.update = function (evt){
+		console.log("VisuChronoSimple.update", evt);
 
-		// Ajoute des événements "de durée" pour caractériser les intervals de temps vides si l'écart entre 2 events > 1 minute
-		E = [];
-		for(i=0; i < evts.length; i++){
-			evt = evts[i];
-			evt.duree = 0;
-			E.push(evt)
-			evtpred = evts[i+1];
-			// durée en minute
-			duree = evtpred? Math.floor((evt.dt - evtpred.dt)/(60000)) : 0;
-			if(duree > 1){
-				d = new Date(evt.dt.getTime() - 60000);
-				E.push({dt: d, nom: "", duree: duree});
-			}
+		// On considère que les événements arrivent dans l'ordre
+		// chronologique croissant
+		if(evt.dt === undefined){
+			console.log("Attention, événement sans champ 'dt' est ignoré", evt);
+			return;
 		}
-		events = E;
+		
+		// calcul la durée depuis le dernier évenemtn enregistré
+		// et ajout un événement caractérisant la durée sans autre événement
+		evtpred = events.length != 0? events[0] : null;
+		// durée en minutes
+		duree = evtpred? Math.floor((evt.dt - evtpred.dt)/(60000)) : 0;
+		if(duree > 1){
+			// 1 minute avant l'évenement courant
+			d = new Date(evt.dt.getTime() - 60000); 
+			events.unshift({dt: d, nom: "", duree: duree});
+		}
+		
+		// durée de l'un evt est toujours 0 mais peut poser 
+		// un pb si on entre des evt avec durée (A revoir)
+		evt.duree = 0; 
+		events.unshift(evt);
+		console.log(events)
 		render_events();
 	}
 	
@@ -97,18 +101,17 @@ var VisuChronoSimple = function() {
 			.data(events.filter(d => evt_a_afficher(d)), d => d.dt) //la date sert de clef
 			.join("li")
 				.attr('class', d => d.duree == 0 ? 'evtsimple': 'evtblanc')
-				//.classed("dmd", d => d.__class__ == "Dmd")
 				.style('padding-bottom', d => d.duree > 0 ? 
 											Math.floor(d.duree*pixel_par_min)+"px" : "1px" )
-											
-				.text(d => d.nom != ""? d.dt.toLocaleTimeString()+": "+d.nom : " ");
+				.text(d => d.nom != ""? d.dt.toLocaleTimeString()+": "+d.nom : " ")
+				.filter(d => d.checkable)
+					.append("span")
+						.append("input")
+							.attr("type", "checkbox")
 	};
 	
 
 	function evt_a_afficher(evt){
-		if( evt.__class__ != "CR" ){
-			return false;
-		}
 		if( filtre_evt_text != ""){
 			if( evt.nom.toUpperCase().indexOf(filtre_evt_text) == -1){
 				return false;
@@ -120,7 +123,6 @@ var VisuChronoSimple = function() {
 			}
 		}
 		return true;
-		
 	}
 	
 }

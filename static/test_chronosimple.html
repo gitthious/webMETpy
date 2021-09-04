@@ -1,0 +1,49 @@
+ <!DOCTYPE html>
+<html>
+<head>
+	<title>Tests chrono simple</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="chronosimple.css">
+	<style >
+	</style>
+</head>
+<body>
+	<ul>
+		<li><span><input type="checkbox"/></span>toto</li>
+	</ul>
+	<section id="mychrono"/>
+	<button type="button" onclick="ajout_un_evt()">ajout_un_evt()</button>
+	<script src="d3.min.js"></script>
+	<script src="chronosimple.js"></script>	
+	<script>
+		var vi = new VisuChronoSimple("#mychrono");
+		var nb = 0;
+		var events = [
+				{ dt: new Date(2021, 1, 8, 9, 0, 0), nom:"evt1"},
+				{ dt: new Date(2021, 1, 8, 9, 19, 0), nom:"evt2", checkable: true},
+				// evt non traité car pas de champt dt
+				{ date: new Date(2021, 1, 8, 9, 19, 0), nom:"evt2"}
+			];
+		var evts_a_ajouter = [
+				{ dt: new Date(2021, 1, 8, 12, 0, 0), nom:"evt3"},
+				{ dt: new Date(2021, 1, 8, 13, 0, 0), nom:"evt4", checkable: false},
+				{ dt: new Date(2021, 1, 8, 13, 45, 0), nom:"evt5", checkable: true},
+				{ dt: new Date(2021, 1, 8, 13, 59, 0), nom: "evt6"}
+			];
+
+		for(let i=0; i < events.length; i++){
+			vi.update(events[i]);
+		}
+
+		function ajout_un_evt(){
+			if(nb >= evts_a_ajouter.length) {
+				alert("Plus d'intervention");
+				return;
+			}
+			vi.update(evts_a_ajouter[nb]);
+			nb += 1
+		}
+	</script>
+</body>
+</html>

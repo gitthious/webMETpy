@@ -54,28 +54,6 @@ input, select {
     stroke-width: 8px !important;
 }
 
-.chronosimple ul {
-	list-style-type: none;
-	padding: 0;
-}
-
-.chronosimple .evtsimple {
-  border: 1px solid #ddd;
-  background-color: lightgray;
-}
-
-.chronosimple .evtsimple.dmd {
-  color: red;
-}
-
-.chronosimple .evtsimple:hover {
-  background-color: gray;
-}
-
-.chronosimple .evtblanc {
-  border: 0px solid white;
-  background-color: transparent;
-}
 
 /*
 .chronosimple .evtsimple:last-child {

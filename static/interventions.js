@@ -3,54 +3,133 @@ encoding utf-8
 © Thierry hervé
 */
 
-var VisuInterventions = function() {
+var VisuInterventions = function(parent_selector="#interventions") {
+	var filtre = "pasfiltre";
 	
 	/* pour supprimer en cas de rechargement de la page 
 	   ou de relance du serveur web */
 	
-	d3.select("#interventions").select("ul").remove();
+	d3.select(parent_selector).select("nav").remove();
 	
-	var elt = d3.select("#interventions").append("ul")
-	
-	this.update = function (){
+	var nav = d3.select(parent_selector)
+		.append("nav")
+			.classed("interventions", true);
 		
-		// reorg events
-		//console.log("VisuInterventions.update",data.events)
-		var evts = data.events;
-		if(!evts){ return; }
-		var interventions = [];
-		/*
-			Une intervention est identifiée avec les champs agent, intervention, args, donc sans l'heure donc une par ligne.
-			Les "encours" sont ajoutés à chaque intervention "début".
-			Cette implémentation n'est pas très efficace mais ça le fait tant qu'il n'y
-			a pas trop d'interventions.
-		*/
-		var dmd = null;
-		for(i=0; i<evts.length; i++){
-			var e = evts[i];
-			if( ! (e.__class__ == "CRIntervention" || e.__class__ == "Dmd") ) continue;
-			if( e.encours == "début" || e.encours == "debut") {
-				interventions.unshift([e.dt, e.agent, e.intervention, e.args , []]);
-			} else {
-				// il faut permettre d'afficher un en cours incohérent
-				//ex. avant un début, après une fin
-				for(j=0; j<interventions.length; j++){
-					//console.log(interventions[j], e)
-					var [dt, agent, intervention, args, encours] = interventions[j];
-					if(    e.dt >= dt 
-						&& agent == e.agent 
-						&& intervention == e.intervention 
-						&& args == e.args){
-							encours.unshift(e.dt.toLocaleTimeString() + ': ' + e.encours)
-							//break
-					}
+	nav.append("input")
+		.attr('type', "radio").attr('id', "pasfiltre")
+		.attr('name', "filtres").attr('value', "pasfiltre")
+		.attr('checked', "yes")
+		.on("click", function(){
+			filtre = "pasfiltre";
+			render();
+		});
+	nav.append("label")
+		.attr('for', "pasfiltre")
+		.html("Toutes");
+
+	nav.append("input")
+		.attr('type', "radio").attr('id', "encours")
+		.attr('name', "filtres").attr('value', "encours")
+		.on("click", function(){
+			filtre = "encours";
+			render();
+		});
+	nav.append("label")
+		.attr('for', "encours")
+		.html("En cours");
+
+	nav.append("input")
+		.attr('type', "radio").attr('id', "fin")
+		.attr('name', "filtres").attr('value', "fin")
+		.on("click", function(){
+			filtre = "fin";
+			render();
+		});
+	nav.append("label")
+		.attr('for', "fin")
+		.html("Terminées");
+
+	nav.append("input")
+		.attr('type', "radio").attr('id', "dmd")
+		.attr('name', "filtres").attr('value', "dmd")
+		.on("click", function(){
+			filtre = "dmd";
+			render();
+		});
+	nav.append("label")
+		.attr('for', "dmd")
+		.html("En attentes");
+				
+	var elt = nav.append('ul');
+
+	/*
+		Une intervention est identifiée (clef) par : 
+			date, agent, nom d'intervention, args 
+		Elle contient une liste "d'encours"
+		On ne crée pas une map simplement pour l'affichage
+		en d3 qui veut une liste de listes
+	*/
+	var interventions = [];
+
+	this.update = function (evt){
+		console.log("VisuInterventions.update", evt);
+
+		// l'évenement n'est pas une intervention
+		if( ! (evt.__class__ == "CRIntervention" || evt.__class__ == "Dmd") ) return;
+		
+		// on ajoute une intervention en supposant que les événements arrivent toujours
+		// avec une date dans l'ordre chronologique 
+		// (idélalement il ne faudrait pas suposer cela)
+		if( evt.encours == "début" || evt.encours == "debut") {
+
+			// ajoute l'intervention au début (comme 'unshift' ne l'indique pas!)
+			// avaec une liset "d'en cours" vide, puisque c'est un début d'intervention
+			interventions.unshift([evt.dt, evt.agent, evt.nom, evt.args , []]);
+
+		} else {
+			/*
+				Idéalement, il faudrait permettre d'afficher un "en cours" incohérent
+				par ex. qui arriverait avant un début, après une fin.
+				On ne le fait pas!
+			*/
+
+			// recherche l'intervention et insert l'encours
+			for(let j=0; j<interventions.length; j++){
+
+				var [dt, agent, nom, args, encours] = interventions[j];
+				if(    evt.dt >= dt 
+					&& agent == evt.agent 
+					&& nom == evt.nom 
+					&& args == evt.args){
+						encours.unshift(evt.dt.toLocaleTimeString() + ': ' + evt.encours)
+						break
 				}
 			}
 		}
-		
-		//console.log("VisuInterventions.update",interventions)
+
+		render();
+	}
+	
+	function a_afficher(intervention){
+		encours = intervention[4];
+		if(filtre == "encours"){
+			if(encours.length == 0) return true;
+			if(encours[0].search("fin") != -1) return false;
+		} else if(filtre=="fin") {
+			if(encours.length == 0) return false;
+			if(encours[0].search("fin") != -1) return true;
+			return false;
+		} else if(filtre=="dmd") {
+			if(encours.length == 0) return false;
+			if(encours[0].search("dmd") != -1) return true;
+			return false;
+		}
+		return true;
+	}
+	
+	function render() {
 		elt.selectAll('li')
-			.data(interventions, d => d)
+			.data(interventions.filter(i => a_afficher(i)), d => d)
 			.join('li')
 				.classed('intervention', true)
 				.classed('finie', function (d){
@@ -79,9 +158,11 @@ var VisuInterventions = function() {
 						.join('li')
 							.classed('encours', true)
 							.text(d => d)
+							// ça ne fonctionne pas car on ne manipule pas un "type selectionnable"
+							// on abandonne pour l'instant
+							// mais le mouseenter et leave fonctionnent
+							//.call(selecteur.on("AgentExploitation", "interventions"));
 	}
-
-	this.update();
 	
 }
 

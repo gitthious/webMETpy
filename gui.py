@@ -1,7 +1,7 @@
 # coding: utf-8
 # © Thierry Hervé
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from branca.element import MacroElement, Div, Figure
 from folium.elements import JSCSSMixin
@@ -242,4 +242,44 @@ class Panel(Div):
         self.col = col
         super().__init__(**kwargs)
     
+class PanelChronoSimple(JSCSSMixin, MacroElement):
+
+    _template = Template("""
+        {% macro header(this, kwargs) %}
+        {% endmacro %}
+
+        {% macro html(this, kwargs) %}
+        <div id="chrono"></div>
+        {% endmacro %}
+
+        {% macro script(this, kwargs) %}
+         $(window).on( "load", () => {
+            var visu_chrono = new VisuChronoSimple();
+            socket.on('add_event', (evt) => {
+                evt.dt = new Date(evt.dt);
+                console.log("on.add_event", evt);
+                visu_chrono.update(evt);
+            })
+         });
+        {% endmacro %}
+
+    """)
+    default_js = [
+	('d3.min.js', '/webMETpy/static/d3.min.js'),
+	('chronosimple.js', '/webMETpy/static/chronosimple.js'),
+    ]
+    default_css = [
+	('chronosimple.css', '/webMETpy/static/chronosimple.css'),
+        ]
+    def __init__(self, serveur,
+                 dateheure_debut=datetime.now(),
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.serveur = serveur
+        self.dateheure_debut = dateheure_debut
         
+    def update_ui(self, cr, **attrs_vals):
+        evtdt, nom = cr._value
+        dt = self.dateheure_debut + timedelta(seconds=evtdt)
+        dt = dt.isoformat(timespec='seconds')
+        self.serveur.emit("add_event", {'dt': dt, 'nom': nom, 'checkable': True})
