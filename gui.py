@@ -283,3 +283,25 @@ class PanelChronoSimple(JSCSSMixin, MacroElement):
         dt = self.dateheure_debut + timedelta(seconds=evtdt)
         dt = dt.isoformat(timespec='seconds')
         self.serveur.emit("add_event", {'dt': dt, 'nom': nom, 'checkable': True})
+
+class Page(Figure):
+    def __init__(self, titre, cont):
+        super().__init__(title=titre)
+        self.add_child(cont)
+        
+class Cont(ContainerFuild):
+    def __init__(self, *rows):
+        super().__init__()
+        for row in rows:
+            self.add_child(row)
+
+class Ligne(Row):
+    def __init__(self, *cols):
+        super().__init__()
+        for col in cols:
+            self.add_child(col)
+            
+class Col(Panel):
+    def __init__(self, dim, panel):
+        super().__init__(dim)
+        self.add_child(panel)
